@@ -37,9 +37,9 @@ if (!("package:tidyr" %in% search())) {
 if (!("package:dplyr" %in% search())) {
   suppressMessages(library(dplyr))
 }
-if (!("package:spdplyr" %in% search())) {
-  suppressMessages(library(spdplyr))
-}
+# if (!("package:spdplyr" %in% search())) {
+#   suppressMessages(library(spdplyr))
+# }
 if (!("package:readr" %in% search())) {
   suppressMessages(library(readr))
 }
@@ -109,7 +109,8 @@ s3load(object = "wasdet-wrinfo.RData",
    demand <- demand_test_set
    rm(demand_test_set)
  } else {
-  s3load(object = "wasdet-demands.RData", bucket = "dwr-shiny-apps")
+  s3load(object = "wasdet-demands.RData", 
+         bucket = "dwr-shiny-apps")
  }
 
 ## Load Supply data. ----
