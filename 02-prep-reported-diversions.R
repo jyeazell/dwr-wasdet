@@ -13,16 +13,16 @@ library(aws.s3)
 ## Switches. ----
 write_data <- FALSE
 download_divs <- FALSE
-save_test_set <- TRUE
+save_test_set <- FALSE
 
 # set up parallel R sessions.
 plan(multisession)
 
 # Set plot year.
-plot_year <- 2020
+plot_year <- max(diversions_raw$YEAR)
 
 ## Load S3 keys. ----
-source("./app/load-s3-keys.R")
+source("load-s3-keys.R")
 
 # Load functions.
 if(download_divs) source("f_getReportedDivs_FF.R")
