@@ -356,8 +356,8 @@ if(write_data) {
        file = "./output/wasdet-wrinfo.RData")
   
   # Write data to S3 bucket.
-  put_object(file = "./output/wasdet-wrinfo.RData", 
-             object = "wasdet-wrinfo.RData", 
-             bucket = "dwr-shiny-apps",
-             multipart = TRUE)
+  # put_object(file = "./output/wasdet-wrinfo.RData", 
+  #            object = "wasdet-wrinfo.RData", 
+  #            bucket = "dwr-shiny-apps",
+  #            multipart = TRUE)
 }
