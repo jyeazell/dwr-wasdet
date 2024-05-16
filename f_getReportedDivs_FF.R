@@ -7,7 +7,9 @@
 ##'
 ##'Function returns file path to downloaded reporting compliance file.
 
-getReporteDivsCSV <- function(cred_file = "credentials.csv",
+getReporteDivsCSV <- function(dl_loc = ".",
+                              cred_file = "ewrims-key.csv",
+                              method = "chrome",
                               save_file = TRUE) {
     
     ## Initialization. ----
@@ -35,25 +37,37 @@ getReporteDivsCSV <- function(cred_file = "credentials.csv",
     # Load login credentials from file.
     creds <- read_csv(cred_file)
     
-    fprof <- makeFirefoxProfile(list(
-        browser.download.dir = normalizePath(getwd()),  
-        browser.download.folderList = 2L, 
-        browser.download.manager.showWhenStarting = FALSE,
-        browser.helperApps.neverAsk.saveToDisk = "text/csv",
-        # browser.helperApps.alwaysAsk.force = FALSE,
-        browser.tabs.remote.autostart = FALSE,
-        browser.tabs.remote.autostart.2 = FALSE,
-        browser.tabs.remote.desktopbehavior = FALSE))
-    
-    driver <- rsDriver(port = free_port(), 
-                   browser = "firefox", 
-                   version = "latest", 
-                   # geckover = "0.14.0", 
-                   # iedrver = NULL, 
-                   # phantomver = "2.1.1",
-                   verbose = TRUE, 
-                   check = TRUE, 
-                   extraCapabilities = fprof)
+    # Define browser options. ----
+    if( method == "firefox" ) {
+      fprof <- makeFirefoxProfile(list(browser.download.dir = dl_loc,
+                                       browser.download.folderList = 2L,
+                                       browser.download.manager.showWhenStarting = FALSE,
+                                       browser.helperApps.neverAsk.openFile = "text/csv",
+                                       browser.helperApps.neverAsk.saveToDisk = "text/csv, application/csv, application/excel, application/vnd.ms-excel, application/vnd.msexcel"))
+      
+      # Create driver.
+      driver<- rsDriver(port = free_port(),
+                        browser= "firefox",
+                        extraCapabilities = fprof)
+    } else if( method == "chrome" ) {
+      eCaps <- list(
+        chromeOptions =
+          list(prefs = list("profile.default_content_settings.popups" = 0L,
+                            "download.prompt_for_download" = FALSE,
+                            "directory_upgrade" = TRUE,
+                            "download.default_directory" = normalizePath(dl_loc)))
+      )
+      
+      # Create driver.
+      driver<- rsDriver(port = free_port(random = TRUE),
+                        browser= "chrome",
+                        chromever = "latest",
+                        extraCapabilities = eCaps, 
+                        check = FALSE
+      )
+    } 
+    else
+    { stop("Unsupported Browser.") }
     
     remDr <- driver[["client"]]
     

@@ -6,7 +6,9 @@ debug_flag <- FALSE
 if(develop) {
   old_wd <- getwd()
   setwd("./app")
+  
 }
+
 
 # Debug. #####
 if (debug_flag) {
