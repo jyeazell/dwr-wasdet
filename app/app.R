@@ -54,109 +54,110 @@ ui <- fluidPage( # Start fluidpage_1
   navbarPage(title = NULL,
              selected = "Explore",
              ### Explore. ----
-             tabPanel("Explore",
-                      
-                      fluidRow(
-                        sidebarLayout(
-                          
-                          #### Sidebar Panel. ----
-                          sidebarPanel(width = 2,
-                                       
-                          ), # End sidebarPanel
-                          mainPanel(width = 10,
-                                    
-                                    # Plot/Data/Watershed map Tabs.
-                                    tabsetPanel(type = "pills",
-                                                
-                                                ##### Plots tabs. ----
-                                                tabPanel("Plots",
-                                                         fluidRow(
-                                                           
-                                                           # Plot column.
-                                                           column(width = 7, # Plot column.
-                                                                  tabsetPanel(id = "plot_tabs",
-                                                                              selected = "Demand by Water Right Type",
-                                                                              type = "pills",
-                                                                              
-                                                                              ###### Demand by Water right type plot tab. ----
-                                                                              tabPanel(title = "Demand by Water Right Type",
-                                                                                       id = "dbwrt_tab",
-                                                                                       fluidRow(
-                                                                                    
-                                                                                       )
-                                                                              ),
-                                                                              
-                                                                              ###### Demand by priority plot tab. ----
-                                                                              tabPanel(title = "Demand by Priority",
-                                                                                       id = "dbp_tab",
-                                                                                       fluidRow(
-                                                                                        
-                                                                                       )
-                                                                              ),
-                                                                              
-                                                                              ###### Supply-Demand plot tab. ----
-                                                                              tabPanel(title = "Supply-Demand Scenarios",
-                                                                                       id = "vsd_tab",
-                                                                                       fluidRow(
-                                                                                    
-                                                                                       )
-                                                                              )
-                                                                              
-                                                                              
-                                                                  ) # End plot_tabs tabsetPanel      
-                                                           ), # End plot column.
-                                                         
-                                                           # Mini map column.
-                                                           column(width = 5,
-                                                                  fluidRow(
-                                                               
-                                                                    ) # End fluidRow
-                                                           ) # End column
-                                                         ) # End fluidRow
-                                                ), # End Plots tabPanel    
-                                                
-                                                ##### Data tab. ----
-                                                tabPanel("Data",
-                                                
-                                                ), # End Data tabPanel
-                                                
-                                                ##### California Watershed Map tab. ----
-                                                tabPanel("California Watershed Map",
+             navbarMenu("Explore",
+                        
+                        fluidRow(
+                          sidebarLayout(
+                            
+                            #### Sidebar Panel. ----
+                            sidebarPanel(width = 2,
                                          
-                                                ) # End California Watershed Map tabPanel
-                                                
-                                    ) # End tabsetPanel      
-                          ) # End mainPanel
-                        ),
+                            ), # End sidebarPanel
+                            mainPanel(width = 10,
+                                      
+                                      # Plot/Data/Watershed map Tabs.
+                                      tabsetPanel(type = "pills",
+                                                  
+                                                  ##### Plots tabs. ----
+                                                  tabPanel("Plots",
+                                                           fluidRow(
+                                                             
+                                                             # Plot column.
+                                                             column(width = 7, # Plot column.
+                                                                    tabsetPanel(id = "plot_tabs",
+                                                                                selected = "Demand by Water Right Type",
+                                                                                type = "pills",
+                                                                                
+                                                                                ###### Demand by Water right type plot tab. ----
+                                                                                tabPanel(title = "Demand by Water Right Type",
+                                                                                         id = "dbwrt_tab",
+                                                                                         fluidRow(
+                                                                                           
+                                                                                         )
+                                                                                ),
+                                                                                
+                                                                                ###### Demand by priority plot tab. ----
+                                                                                tabPanel(title = "Demand by Priority",
+                                                                                         id = "dbp_tab",
+                                                                                         fluidRow(
+                                                                                           
+                                                                                         )
+                                                                                ),
+                                                                                
+                                                                                ###### Supply-Demand plot tab. ----
+                                                                                tabPanel(title = "Supply-Demand Scenarios",
+                                                                                         id = "vsd_tab",
+                                                                                         fluidRow(
+                                                                                           
+                                                                                         )
+                                                                                )
+                                                                                
+                                                                                
+                                                                    ) # End plot_tabs tabsetPanel      
+                                                             ), # End plot column.
+                                                             
+                                                             # Mini map column.
+                                                             column(width = 5,
+                                                                    fluidRow(
+                                                                      
+                                                                    ) # End fluidRow
+                                                             ) # End column
+                                                           ) # End fluidRow
+                                                  ), # End Plots tabPanel    
+                                                  
+                                                  ##### Data tab. ----
+                                                  tabPanel("Data",
+                                                           
+                                                  ), # End Data tabPanel
+                                                  
+                                                  ##### California Watershed Map tab. ----
+                                                  tabPanel("California Watershed Map",
+                                                           
+                                                  ) # End California Watershed Map tabPanel
+                                                  
+                                      ) # End tabsetPanel      
+                            ) # End mainPanel
+                          ) # End sidebarLayout
+                        ) # End fluidRow
+             ), # End Explore navbarMenu
+             
+             
+             ### Dataset Information. ----
+             navbarMenu("Dataset Information",
+                        icon = icon("table"),
                         
                         
-                        ### Dataset Information. ----
-                        navbarMenu("Dataset Information",
-                                   icon = icon("table"),
-                                   
-                                   
-                        ), # End Dataset Information navbarMenu
+             ), # End Dataset Information navbarMenu
+             
+             ### About/Help. ----
+             navbarMenu("About/Help",
+                        icon = icon("info-circle"),
                         
-                        ### About/Help. ----
-                        navbarMenu("About/Help",
-                                   icon = icon("info-circle"),
-                                   
-                        ) # End About/Help navbarMenu
-                        
-                      ) # End navbarPage
-             ) # End Explore tabPanel
-  ) # End fluidPage_1
-)
+             ) # End About/Help navbarMenu
+             
+  ) # End navbarPage
+) # End fluidPage_1
+
+
+# SERVER -----------------------------------------------------------------------
+
+server <- function(input, output, session) {
   
-  # SERVER -----------------------------------------------------------------------
   
-  server <- function(input, output, session) {
-    
-    
-  } # End Server
-  
-  # APP --------------------------------------------------------------------------
-  
-  shinyApp(ui = ui,
-           server = server)
-  
+} # End Server
+
+# APP --------------------------------------------------------------------------
+
+shinyApp(ui = ui,
+         server = server)
+
