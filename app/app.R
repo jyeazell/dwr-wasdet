@@ -1,5 +1,19 @@
 # Set Up. ----------------------------------------------------------------------
 
+## Load Shiny libraries.
+if (!("package:shiny" %in% search())) {
+  suppressMessages(library(shiny))
+}
+if (!("package:shinythemes" %in% search())) {
+  suppressMessages(library(shinythemes))
+}
+if (!("package:shinyjs" %in% search())) {
+  suppressMessages(library(shinyjs))
+}
+if (!("package:shinycssloaders" %in% search())) {
+  suppressMessages(library(shinycssloaders))
+}
+
 develop <- FALSE
 debug_flag <- FALSE
 
@@ -22,7 +36,7 @@ if (debug_flag) {
 # Initialization. ----
 
 ## Load libraries. ----
-source("m-load-libraries.R")
+# source("m-load-libraries.R")
 
 ## Load S3 keys. ----
 #source("m-load-s3-keys.R")
@@ -114,6 +128,11 @@ ui <- fluidPage( # Start fluidpage_1
                                                              ) # End column
                                                            ) # End fluidRow
                                                   ), # End Plots tabPanel    
+                                                  
+                                                  ##### Single Water Right tab. ----
+                                                  tabPanel("Single Water Right",
+                                                           
+                                                  ), # End Single Water Right tabPanel  
                                                   
                                                   ##### Data tab. ----
                                                   tabPanel("Data",
