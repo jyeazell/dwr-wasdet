@@ -14,14 +14,14 @@ if (!("package:shinycssloaders" %in% search())) {
   suppressMessages(library(shinycssloaders))
 }
 
-develop <- FALSE
+develop <- TRUE
 debug_flag <- FALSE
 
-if(develop) {
-  old_wd <- getwd()
-  setwd("./app")
-  
-}
+# if(develop) {
+#   old_wd <- getwd()
+#   setwd("./app")
+#   
+# }
 
 
 # Debug. #####
@@ -36,7 +36,7 @@ if (debug_flag) {
 # Initialization. ----
 
 ## Load libraries. ----
-# source("m-load-libraries.R")
+source("m-load-libraries.R")
 
 ## Load S3 keys. ----
 #source("m-load-s3-keys.R")
@@ -46,6 +46,9 @@ app_title <- paste("Division of Water Rights",
                    "Water Supply/Demand Visualization Tool")
 
 #source("app/m-load-prep.R")
+
+# Choose 20 random tibbles from demand.
+ demand_sample <- sample(demand, 20)
 
 
 # UI ---------------------------------------------------------------------------
@@ -72,9 +75,81 @@ ui <- fluidPage( # Start fluidpage_1
                       fluidRow(
                         sidebarLayout(
                           
-                          #### Sidebar Panel. ----
+                          ### Sidebar Panel. ----
+                          
                           sidebarPanel(width = 2,
                                        
+                                       ##### Mandatory inputs. ----
+                                       
+                                       ###### Select units to display. ----
+                                       radioButtons(inputId = "units_selected",
+                                                    label = "Select Units:",
+                                                    choiceNames = list(
+                                                      "Cubic Feet per Second (cfs)",
+                                                      "Acre-Feet per Day (AF/d)"
+                                                    ),
+                                                    choiceValues = list(
+                                                      "cfs",
+                                                      "afd"
+                                                    ),
+                                                    selected = "cfs"
+                                       ),
+                                       
+                                       ###### Select HUC-8 watershed. ----
+                                       selectInput(inputId = "huc8_selected",
+                                                   label = "Select HUC-8 Watershed:",
+                                                   choices = NULL,
+                                                   selected = NULL,
+                                                   multiple = FALSE
+                                       ),
+                                       
+                                       ###### Filter for watersheds with supply information. ----
+                                       checkboxInput(inputId = "supply_filter",
+                                                     label = "Filter for watersheds with available supply information",
+                                                     value = FALSE
+                                       ),
+                                       
+                                       ###### Select demand scenario(s). ----
+                                       selectizeInput(inputId = "d_scene_selected",
+                                                      label = "Select Up To Two Demand Scenarios:",
+                                                      choices = NULL,
+                                                      selected = NULL,
+                                                      multiple = TRUE,
+                                                      options = list(maxItems = 2)
+                                       ),
+                                       
+                                       ##### Conditional Inputs. ----
+                                       
+                                       ###### Select supply scenario(s) for vsd_plot. ----
+                                       selectizeInput(inputId = "s_scene_selected",
+                                                      label = "Select Up To Three Supply Scenarios:",
+                                                      choices = NULL,
+                                                      selected = NULL,
+                                                      multiple = TRUE,
+                                                      options = list(maxItems = 3)
+                                       ),
+                                       
+                                       ###### Select priority year to slice for vsd_plot. ----
+                                       selectInput(inputId = "priority_selected",
+                                                   label = "Select Demand Priority Year:",
+                                                   choices = NULL,
+                                                   selected = NULL,
+                                                   multiple = FALSE),
+                                       
+                                       ###### Select water right types to include in dbwrt_plot. ----
+                                       checkboxGroupInput(inputId = "wrt_selected",
+                                                          label = "Select Water Right Type(s) to Display:",
+                                                          choices = NULL,
+                                                          selected = NULL),
+                                       
+                                       ###### Conditional supply availability text. ----
+                                       htmlOutput(outputId = "no_supply_text"),
+                                       
+                                       ##### Copyright. ----
+                                       HTML('<center><img src="waterboards_logo_high_res.jpg", height = "70px"><img src="DWR-ENF-Logo-2048.png", height = "70px"></center>'),
+                                       HTML(paste("<center>©", year(now()), 
+                                                  "State Water Resources Control Board</center>"))
+                         
                           ),
                           
                           #### Main Panel. ----
@@ -224,7 +299,7 @@ server <- function(input, output, session) {
 # APP --------------------------------------------------------------------------
 
 # Run in a dialog within R Studio
-runGadget(ui, server, viewer = dialogViewer("Dialog Title", width = 1400, height = 900))
+runGadget(ui, server, viewer = dialogViewer("Dialog Title", width = 1600, height = 1200))
 # 
 # shinyApp(ui = ui,
 #          server = server)
