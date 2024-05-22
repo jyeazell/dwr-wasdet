@@ -38,18 +38,15 @@ if (debug_flag) {
 ## Load libraries. ----
 source("m-load-libraries.R")
 
-## Load S3 keys. ----
-#source("m-load-s3-keys.R")
+# ## Load S3 keys. ----
+# source("m-load-s3-keys.R")
 
-# Application title.
+## Load data files. ----
+source("m-load-prep.R")
+
+## Application title.----
 app_title <- paste("Division of Water Rights",
                    "Water Supply/Demand Visualization Tool")
-
-#source("app/m-load-prep.R")
-
-# Choose 20 random tibbles from demand.
- demand_sample <- sample(demand, 20)
-
 
 # UI ---------------------------------------------------------------------------
 
@@ -294,13 +291,118 @@ ui <- fluidPage( # Start fluidpage_1
 server <- function(input, output, session) {
   
   
+  
+  # ** DEBUG TEXT ** ----
+  
+  output$debug_text <- renderUI(HTML(paste0("huc8_selected: ", 
+                                            input$huc8_selected, br(),
+                                            "d_scene_selected: ", 
+                                            input$d_scene_selected, br(),
+                                            "s_scene_selected: ",
+                                            input$s_scene_selected)))
+  
+  # Setup. ----
+  
+  # Disable units selector until implemented
+  disable(id = "units_selected")
+  
+  # Helper Functions. ----
+  
+  # Define plot height function to keep facet panels roughly the same height
+  # whether displaying one or two.
+  plot_height <- reactive({
+    ifelse(length(input$d_scene_selected) == 1, 480,
+           ifelse(length(input$d_scene_selected) == 2, 835, "auto"))
+  })
+  
+  # OBSERVERS. ----
+  
+  ## Control input selectors. ----
+  observe({
+    if (input$plot_tabs == "Demand by Water Right Type") {
+      hideElement(id = "no_supply_text")
+      hideElement(id = "s_scene_selected")
+      hideElement(id = "priority_selected")
+      showElement(id = "wrt_selected")
+    }
+    if (input$plot_tabs == "Demand by Priority") {
+      hideElement(id = "no_supply_text")
+      hideElement(id = "s_scene_selected")
+      hideElement(id = "priority_selected")
+      hideElement(id = "wrt_selected")
+    }
+    if (input$plot_tabs == "Supply-Demand Scenarios" & 
+        is.null(supply[[input$huc8_selected]])) {
+      showElement(id = "no_supply_text")
+      hideElement(id = "s_scene_selected")
+      showElement(id = "priority_selected")
+      hideElement(id = "wrt_selected")
+    }
+    if (input$plot_tabs == "Supply-Demand Scenarios" & 
+        !is.null(supply[[input$huc8_selected]])) {
+      hideElement(id = "no_supply_text")
+      showElement(id = "s_scene_selected")
+      showElement(id = "priority_selected")
+      hideElement(id = "wrt_selected")
+    }
+  })
+  
 } # End Server
 
 # APP --------------------------------------------------------------------------
 
 # Run in a dialog within R Studio
-runGadget(ui, server, viewer = dialogViewer("Dialog Title", width = 1600, height = 1200))
-# 
-# shinyApp(ui = ui,
-#          server = server)
+# runGadget(ui, server, viewer = dialogViewer("Dialog Title", width = 1600, height = 1200))
 
+shinyApp(ui = ui,
+         server = server)
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

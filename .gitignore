@@ -47,3 +47,4 @@ app-old.R
 app-main-full.R
 app-cut.R
 app-from-main.R
+.Renviron
