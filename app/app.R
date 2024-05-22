@@ -38,9 +38,6 @@ if (debug_flag) {
 ## Load libraries. ----
 source("m-load-libraries.R")
 
-# ## Load S3 keys. ----
-# source("m-load-s3-keys.R")
-
 ## Load data files. ----
 source("m-load-prep.R")
 
@@ -96,7 +93,7 @@ ui <- fluidPage( # Start fluidpage_1
                                        selectInput(inputId = "huc8_selected",
                                                    label = "Select HUC-8 Watershed:",
                                                    choices = NULL,
-                                                   selected = NULL,
+                                                   selected = "BUTTE",
                                                    multiple = FALSE
                                        ),
                                        
@@ -199,6 +196,12 @@ ui <- fluidPage( # Start fluidpage_1
                                                            column(width = 5,
                                                                   fluidRow(
                                                                     
+                                                                    
+                                                                    br(),
+                                                                    
+                                                                    # ###### DEBUG NOTES. ----
+                                                                    h3("Debug"),
+                                                                    uiOutput("debug_text")
                                                                   )
                                                            )
                                                          )
@@ -347,15 +350,68 @@ server <- function(input, output, session) {
     }
   })
   
+  ## Filter for watersheds that have supply data. ----
+  observeEvent(input$supply_filter, {
+    if (input$supply_filter) { 
+      huc8_choices <- sort(names(demand)[names(demand) %in% names(supply)])
+    } else { 
+      huc8_choices <- sort(names(demand))
+    }
+    updateSelectInput(session,
+                      inputId = "huc8_selected",
+                      choices = huc8_choices,
+                      selected = sample(huc8_choices, 1))
+  })
+  
+  ## Update demand scenario choices. ----
+  observeEvent(input$huc8_selected, {
+    choices <- sort(unique(demand[[input$huc8_selected]]$d_scenario))
+    updateSelectizeInput(session, 
+                         inputId = "d_scene_selected",
+                         choices = choices,
+                         selected = "Reported Diversions - 2020")
+  })
+  
+  observeEvent(input$huc8_selected, {
+    if( !is.null(supply[[input$huc8_selected]]) ) {
+      supply_choices <- sort(unique(supply[[input$huc8_selected]]$s_scenario))
+      updateSelectizeInput(session,
+                           inputId = "s_scene_selected",
+                           choices = supply_choices,
+                           selected = NULL)
+    }
+  })
+  
+  ## Update priority year choices. ----
+  py_choice_list <- reactive({
+    sort(na.omit(unique(demand[[input$huc8_selected]]$p_year)), 
+         decreasing = TRUE)
+  })
+  observeEvent(input$huc8_selected, {
+    choices <- py_choice_list()[py_choice_list() > min(py_choice_list())]
+    updateSelectInput(session, "priority_selected",
+                      choices = choices,
+                      selected = nth(choices, length(choices) / 2))
+  })
+  
+  ## Update water right type choices. ----
+  observeEvent(input$huc8_selected, {
+    choices <- unique(demand[[input$huc8_selected]]$wr_type)
+    updateCheckboxGroupInput(session = session, 
+                             inputId = "wrt_selected",
+                             choices = choices,
+                             selected = choices)
+  })
+  
 } # End Server
 
 # APP --------------------------------------------------------------------------
 
 # Run in a dialog within R Studio
-# runGadget(ui, server, viewer = dialogViewer("Dialog Title", width = 1600, height = 1200))
+runGadget(ui, server, viewer = dialogViewer("Dialog Title", width = 1600, height = 1200))
 
-shinyApp(ui = ui,
-         server = server)
+# shinyApp(ui = ui,
+#          server = server)
 
 
  
