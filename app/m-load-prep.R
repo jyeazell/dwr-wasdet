@@ -24,28 +24,28 @@ build_plot_supply <- function(x, s_scene, d_scene) {
 # Load data from AWS S3 bucket. ----
 
 ## Load Water Right Info. ----
-if(develop) {
+#if(develop) {
   load("data/wasdet-wrinfo.RData")
-} else {
-  s3load(object = "wasdet-wrinfo.RData",
-         bucket = "dwr-shiny-apps")
-}
+#} else {
+#  s3load(object = "wasdet-wrinfo.RData",
+#         bucket = "dwr-shiny-apps")
+#}
 
 ## Load Demand Data. ----
-if(develop) {
+#if(develop) {
   load("data/wasdet-demands.RData")
-} else {
-  s3load(object = "wasdet-demands.RData", 
-         bucket = "dwr-shiny-apps")
-}
+#} else {
+#  s3load(object = "wasdet-demands.RData", 
+#         bucket = "dwr-shiny-apps")
+##}
 
 ## Load Supply data. ----
-if(develop) {
+#if(develop) {
   load("data/wasdet-supplies.RData")
-} else {
-  s3load(object = "wasdet-supplies.RData",
-         bucket = "dwr-shiny-apps")
-}
+#} else {
+#  s3load(object = "wasdet-supplies.RData",
+#         bucket = "dwr-shiny-apps")
+#}
 
 # Load local data. ----
 
