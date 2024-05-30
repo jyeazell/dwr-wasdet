@@ -43,3 +43,8 @@ wruds_downloads
 .lintr
 Test Bed Data.RData
 ewrims-key.csv
+app-old.R
+app-main-full.R
+app-cut.R
+app-from-main.R
+.Renviron
