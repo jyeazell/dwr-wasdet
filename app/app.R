@@ -20,7 +20,7 @@ develop <- TRUE
 source("m-load-libraries.R")
 
 ## Load data files. ----
-source("m-load-prep.R")
+source("m-load-prep.R", local = TRUE)
 
 ## Application title.----
 app_title <- paste("Division of Water Rights",
