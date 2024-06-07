@@ -67,8 +67,8 @@ ui <- fluidPage(
                                      #### d_scene_selected: Select demand scenario(s). ----
                                      selectizeInput(inputId = "d_scene_selected",
                                                     label = "Select Up To Two Demand Scenarios:",
-                                                    # choices = NULL,
-                                                    choices = sort(unique(demand[[input$huc8_selected]]$d_scenario)),
+                                                   choices = NULL,
+                                                    # choices = sort(unique(demand[[input$huc8_selected]]$d_scenario)),
                                                     selected = "Reported Diversions - 2011",
                                                     multiple = TRUE,
                                                     options = list(maxItems = 2)
@@ -84,7 +84,7 @@ ui <- fluidPage(
                                      #### s_scene_selected: Select supply scenario(s) for vsd_plot. ----
                                      selectizeInput(inputId = "s_scene_selected",
                                                     label = "Select Up To Three Supply Scenarios:",
-                                                    choices = names,
+                                                    choices = NULL,
                                                     selected = NULL,
                                                     multiple = TRUE,
                                                     options = list(maxItems = 3)
@@ -103,7 +103,7 @@ ui <- fluidPage(
                                      # HTML('<center><img src="waterboards_logo_high_res.jpg", height = "70px"><img src="DWR-ENF-Logo-2048.png", height = "70px"></center>'),
                                      # HTML(paste("<center>©", year(now()), 
                                      #            "State Water Resources Control Board</center>"))
-                        ),
+                        ), # End sidebarPanel.
                         
                         ### Main Panel. ----
                         mainPanel(width = 10,
@@ -129,24 +129,25 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   # ** DEBUG TEXT ** ----
-  
-  output$debug_text <- renderUI(HTML(paste0("huc8_selected: ", 
-                                            input$huc8_selected, br(),
-                                            "d_scene_selected: ",
-                                            input$d_scene_selected, br(),
-                                            "s_scene_selected: ",
-                                            input$s_scene_selected
-  )
-  )
-  )
+  observe({
+    output$debug_text <- renderUI(HTML(paste0("huc8_selected: ",
+                                              input$huc8_selected, br(),
+                                              "d_scene_selected: ",
+                                              input$d_scene_selected, br(),
+                                              "s_scene_selected: ",
+                                              input$s_scene_selected
+    )
+    )
+    )
+  })
   
   # OBSERVERS. ----
   
   # ## Filter for watersheds that have supply data. ----
   # observeEvent(input$supply_filter, {
-  #   if (input$supply_filter) { 
+  #   if (input$supply_filter) {
   #     huc8_choices <- sort(names(demand)[names(demand) %in% names(supply)])
-  #   } else { 
+  #   } else {
   #     huc8_choices <- sort(names(demand))
   #   }
   #   updateSelectInput(session,
@@ -159,11 +160,11 @@ server <- function(input, output, session) {
   # ## Update demand scenario choices. ----
   # observeEvent(input$huc8_selected, {
   #   choices <- sort(unique(demand[[input$huc8_selected]]$d_scenario))
-  #   updateSelectizeInput(session, 
+  #   updateSelectizeInput(session,
   #                        inputId = "d_scene_selected",
   #                        choices = choices,
   #                        selected = "Reported Diversions - 2020")
-  # }, priority = 10
+  # }
   # )
   # 
   # observeEvent(input$huc8_selected, {
@@ -178,7 +179,7 @@ server <- function(input, output, session) {
   # 
   # ## Update priority year choices. ----
   # py_choice_list <- reactive({
-  #   sort(na.omit(unique(demand[[input$huc8_selected]]$p_year)), 
+  #   sort(na.omit(unique(demand[[input$huc8_selected]]$p_year)),
   #        decreasing = TRUE)
   # })
   # observeEvent(input$huc8_selected, {
@@ -188,24 +189,25 @@ server <- function(input, output, session) {
   #                     selected = nth(choices, length(choices) / 2))
   # })
   # 
-  # ## Update water right type choices. ----
-  # observeEvent(input$huc8_selected, {
-  #   choices <- unique(demand[[input$huc8_selected]]$wr_type)
-  #   updateCheckboxGroupInput(session = session, 
-  #                            inputId = "wrt_selected",
-  #                            choices = choices,
-  #                            selected = choices)
-  # })
-  
+  ## Update water right type choices. ----
+  observeEvent(input$huc8_selected, {
+    req(input$huc8_selected)
+    choices <- unique(demand[[input$huc8_selected]]$wr_type)
+    updateCheckboxGroupInput(session = session,
+                             inputId = "wrt_selected",
+                             choices = choices,
+                             selected = choices)
+  })
+
 }
 
 # APP --------------------------------------------------------------------------
 
 # Run in a dialog within R Studio
 runGadget(ui, server, viewer = dialogViewer("Dialog Title", width = 1600, height = 1200))
-
-shinyApp(ui = ui,
-         server = server)
+# 
+# shinyApp(ui = ui,
+#          server = server)
 
 
 
