@@ -143,52 +143,57 @@ server <- function(input, output, session) {
   
   # OBSERVERS. ----
   
-  # ## Filter for watersheds that have supply data. ----
-  # observeEvent(input$supply_filter, {
-  #   if (input$supply_filter) {
-  #     huc8_choices <- sort(names(demand)[names(demand) %in% names(supply)])
-  #   } else {
-  #     huc8_choices <- sort(names(demand))
-  #   }
-  #   updateSelectInput(session,
-  #                     inputId = "huc8_selected",
-  #                     choices = huc8_choices,
-  #                     selected = sample(huc8_choices, 1))
-  # }
-  # )
-  # 
-  # ## Update demand scenario choices. ----
-  # observeEvent(input$huc8_selected, {
-  #   choices <- sort(unique(demand[[input$huc8_selected]]$d_scenario))
-  #   updateSelectizeInput(session,
-  #                        inputId = "d_scene_selected",
-  #                        choices = choices,
-  #                        selected = "Reported Diversions - 2020")
-  # }
-  # )
-  # 
-  # observeEvent(input$huc8_selected, {
-  #   if( !is.null(supply[[input$huc8_selected]]) ) {
-  #     supply_choices <- sort(unique(supply[[input$huc8_selected]]$s_scenario))
-  #     updateSelectizeInput(session,
-  #                          inputId = "s_scene_selected",
-  #                          choices = supply_choices,
-  #                          selected = NULL)
-  #   }
-  # })
-  # 
+  ## Filter for watersheds that have supply data. ----
+  huc8_choices <- reactive({
+    ifelse(input$supply_filter,
+           sort(names(demand)[names(demand) %in% names(supply)]),
+           sort(names(demand)))
+  })
+  
+  
+  observe(input$supply_filter, {
+    updateSelectInput(session,
+                      inputId = "huc8_selected",
+                      choices = huc8_choices,
+                      selected = sample(huc8_choices, 1))
+  }
+  )
+
+  ## Update demand scenario choices. ----
+  observeEvent(input$huc8_selected, {
+    choices <- sort(unique(demand[[input$huc8_selected]]$d_scenario))
+    updateSelectizeInput(session,
+                         inputId = "d_scene_selected",
+                         choices = choices,
+                         selected = "Reported Diversions - 2020")
+  }
+  )
+
+  observeEvent(input$huc8_selected, {
+    req(input$huc8_selected)
+    # if( !is.null(supply[[input$huc8_selected]]) ) {
+      supply_choices <- sort(unique(supply[[input$huc8_selected]]$s_scenario))
+      updateSelectizeInput(session,
+                           inputId = "s_scene_selected",
+                           choices = supply_choices,
+                           selected = NULL)
+    # }
+  })
+
   # ## Update priority year choices. ----
-  # py_choice_list <- reactive({
-  #   sort(na.omit(unique(demand[[input$huc8_selected]]$p_year)),
-  #        decreasing = TRUE)
-  # })
-  # observeEvent(input$huc8_selected, {
-  #   choices <- py_choice_list()[py_choice_list() > min(py_choice_list())]
-  #   updateSelectInput(session, "priority_selected",
-  #                     choices = choices,
-  #                     selected = nth(choices, length(choices) / 2))
-  # })
-  # 
+  py_choice_list <- reactive({
+    req(input$huc8_selected)
+    sort(na.omit(unique(demand[[input$huc8_selected]]$p_year)),
+         decreasing = TRUE)
+  })
+  observeEvent(input$huc8_selected, {
+    req(input$huc8_selected)
+    choices <- py_choice_list()[py_choice_list() > min(py_choice_list())]
+    updateSelectInput(session, "priority_selected",
+                      choices = choices,
+                      selected = max(choices))
+  })
+
   ## Update water right type choices. ----
   observeEvent(input$huc8_selected, {
     req(input$huc8_selected)
