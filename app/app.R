@@ -1,13 +1,22 @@
 # Set Up. ----------------------------------------------------------------------
 
-## Load Shiny libraries. ----
+## Load Shiny libraries.
 if (!("package:shiny" %in% search())) {
   suppressMessages(library(shiny))
 }
+if (!("package:shinythemes" %in% search())) {
+  suppressMessages(library(shinythemes))
+}
+if (!("package:shinyjs" %in% search())) {
+  suppressMessages(library(shinyjs))
+}
+if (!("package:shinycssloaders" %in% search())) {
+  suppressMessages(library(shinycssloaders))
+}
 
-debug_flag <- TRUE
+develop <- TRUE
+debug_flag <- FALSE
 
-# Enable reactlog. ---- 
 # Debug. #####
 if (debug_flag) {
   if (!("package:reactlog" %in% search())) {
@@ -17,38 +26,17 @@ if (debug_flag) {
   reactlog_enable()
 }
 
-# Demand watershed choices.
-demand_choices <- c("Aliso-San Onofre",                 "Antelope-Fremont Valleys",        
-                    "Applegate",                        "Battle Creek",                    
-                    "Big Chico Creek-Sacramento River", "Big-Navarro-Garcia",              
-                    "Butte",                            "Butte Creek",                     
-                    "Calleguas",                        "Carrizo Creek",                   
-                    "Carrizo Plain",                    "Central Coastal",                 
-                    "Chetco",                           "Clear Creek-Sacramento River",    
-                    "Cottonwood Creek",                  "Cottonwood-Tijuana",              
-                    "Cow Creek",                        "Coyote",                          
-                    "Coyote-Cuddeback Lakes",           "Crowley Lake",                    
-                    "Cuyama",                           "Death Valley-Lower Amargosa",     
-                    "East Branch North Fork Feather",   "East Walker",                     
-                    "Estrella",                         "Eureka-Saline Valleys",           
-                    "Fish Lake-Soda Spring Valleys",    "Fresno River",                    
-                    "Goose Lake",                       "Gualala-Salmon")
+# Initialization. ----
 
-# Supply watershed choices.
-supply_choices <- c("Battle Creek",                     "Big-Navarro-Garcia",
-                    "Butte Creek",                      "Cottonwood Creek",       
-                    "Cow Creek",                        "Fresno River",          
-                    "McCloud",                          "Middle Fork Feather",    
-                    "North Fork American",              "Sacramento Headwaters",  
-                    "Sacramento Watershed",             "San Joaquin Watershed",   
-                    "Scott",                            "Shasta",              
-                    "Upper Bear",                       "Upper Cache",          
-                    "Upper Calaveras California",       "Upper Cosumnes",       
-                    "Upper Merced",                     "Upper Mokelumne",     
-                    "Upper Putah",                      "Upper San Joaquin",   
-                    "Upper Stanislaus",                 "Upper Stony",          
-                    "Upper Tuolumne",                   "Upper Yuba")
+## Load libraries. ----
+source("m-load-libraries.R")
 
+## Load data files. ----
+source("m-load-prep.R", local = TRUE)
+
+## Application title.----
+app_title <- paste("Division of Water Rights",
+                   "Water Supply/Demand Visualization Tool")
 
 # UI. -------------------------------------------------------------------------
 ui <- fluidPage(
@@ -68,8 +56,44 @@ ui <- fluidPage(
                 value = FALSE
   ),
   
+  #### Select demand scenario(s). ----
+  selectizeInput(inputId = "d_scene_selected",
+                 label = "Select Up To Two Demand Scenarios:",
+                 choices = NULL,
+                 selected = NULL,
+                 multiple = TRUE,
+                 options = list(maxItems = 2)
+  ),
   
-  ###### DEBUG ----
+  #### Select supply scenario(s). ----
+  selectizeInput(inputId = "s_scene_selected",
+                 label = "Select Up To Three Supply Scenarios:",
+                 choices = NULL,
+                 selected = NULL,
+                 multiple = TRUE,
+                 options = list(maxItems = 3)
+  ),
+  
+  #### Select priority year. ----
+  selectInput(inputId = "priority_selected",
+              label = "Select Demand Priority Year:",
+              choices = NULL,
+              selected = NULL,
+              multiple = FALSE),
+  
+  #### Select water right types. ----
+  checkboxGroupInput(inputId = "wrt_selected",
+                     label = "Select Water Right Type(s) to Display:",
+                     choices = NULL,
+                     selected = NULL),
+  
+  #### Copyright. ----
+  HTML('<center><img src="waterboards_logo_high_res.jpg", height = "70px"><img src="DWR-ENF-Logo-2048.png", height = "70px"></center>'),
+  HTML(paste("<center>©", year(now()), 
+             "State Water Resources Control Board</center>")),
+  
+  
+  #### DEBUG ----
   uiOutput("debug_text")
   
 ) # End fluidPage
@@ -78,8 +102,7 @@ ui <- fluidPage(
 # SERVER. ---------------------------------------------------------------------
 server <- function(input, output, session) {
   
-  # ** DEBUG TEXT ** ----
-  
+  ## DEBUG TEXT ----
   output$debug_text <- renderUI(HTML(paste0(br(), br(),
                                             h3("Debug"), br(),
                                             "huc8_selected: ", 
@@ -92,21 +115,66 @@ server <- function(input, output, session) {
   )
   )
   
-  # OBSERVERS. ----
- 
-  ## Filter for watersheds that have supply data. ----
+  ## OBSERVERS. ----
   
+  ### Update available watersheds when input$supply_filter check box changes. ----
   observeEvent(input$supply_filter, {
     if (input$supply_filter) { 
-      huc8_choices <- demand_choices[demand_choices %in% supply_choices]
+      huc8_choices <- sort(names(demand)[names(demand) %in% names(supply)])
     } else { 
-      huc8_choices <- demand_choices
+      huc8_choices <- sort(names(demand))
     }
     updateSelectInput(session,
                       inputId = "huc8_selected",
                       choices = huc8_choices,
-                      selected = sample(huc8_choices, 1)
-    )
+                      selected = sample(huc8_choices, 1))
+  })
+  
+  ### Update demand scenario choices. ----
+  observeEvent(input$huc8_selected, {
+    req(input$huc8_selected)
+    choices <- sort(unique(demand[[input$huc8_selected]]$d_scenario))
+    updateSelectizeInput(session, 
+                         inputId = "d_scene_selected",
+                         choices = choices,
+                         selected = "Reported Diversions - 2023")
+  })
+  
+  #### Update supply scenario choices. ----
+  observeEvent(input$huc8_selected, {
+    req(input$huc8_selected)
+    if( !is.null(supply[[input$huc8_selected]]) ) {
+    supply_choices <- sort(unique(supply[[input$huc8_selected]]$s_scenario))
+    }else {
+      supply_choices <- character(0)
+    }
+     updateSelectizeInput(session,
+                         inputId = "s_scene_selected",
+                         choices = supply_choices,
+                         selected = "")
+    
+  })
+  
+  ## Update priority year choices. ----
+  py_choice_list <- reactive({
+    sort(na.omit(unique(demand[[input$huc8_selected]]$p_year)), 
+         decreasing = TRUE)
+  })
+  observeEvent(input$huc8_selected, {
+    req(input$huc8_selected)
+    choices <- py_choice_list()[py_choice_list() > min(py_choice_list())]
+    updateSelectInput(session, "priority_selected",
+                      choices = choices,
+                      selected = max(choices))
+  })
+  
+  ## Update water right type choices. ----
+  observeEvent(input$huc8_selected, {
+    choices <- unique(demand[[input$huc8_selected]]$wr_type)
+    updateCheckboxGroupInput(session = session, 
+                             inputId = "wrt_selected",
+                             choices = choices,
+                             selected = choices)
   })
   
 }
@@ -114,10 +182,12 @@ server <- function(input, output, session) {
 # APP --------------------------------------------------------------------------
 
 # Run in a dialog within R Studio
-runGadget(ui, server, viewer = dialogViewer("Dialog Title", width = 1600, height = 1200))
-# 
-# shinyApp(ui = ui,
-#          server = server)
+# runGadget(ui, server, viewer = dialogViewer(dialogName = "DWR-WASDET DEVELOP", 
+#                                             width = 1600, 
+#                                             height = 1200))
+
+shinyApp(ui = ui,
+         server = server)
 
 
 
