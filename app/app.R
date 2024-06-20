@@ -5,13 +5,17 @@ if (!("package:shiny" %in% search())) {
   suppressMessages(library(shiny))
 }
 
-## Load libraries. ----
-#source("m-load-libraries.R")
-# 
-# ## Load data files. ----
-# source("m-load-prep.R", local = TRUE)
+debug_flag <- TRUE
 
-##  Define variables. ----
+# Enable reactlog. ---- 
+# Debug. #####
+if (debug_flag) {
+  if (!("package:reactlog" %in% search())) {
+    suppressMessages(library(reactlog))
+  }
+  reactlogReset()
+  reactlog_enable()
+}
 
 # Demand watershed choices.
 demand_choices <- c("Aliso-San Onofre",                 "Antelope-Fremont Valleys",        
@@ -48,91 +52,27 @@ supply_choices <- c("Battle Creek",                     "Big-Navarro-Garcia",
 
 # UI. -------------------------------------------------------------------------
 ui <- fluidPage(
- 
-                                     
-                                     #### huc8_selected: Select HUC-8 watershed. ----
-                                     selectInput(inputId = "huc8_selected",
-                                                 label = "Select HUC-8 Watershed:",
-                                                 choices = NULL,
-                                                 selected = NULL,
-                                                 multiple = FALSE
-                                     ),
-                                     
-                                     #### Filter for watersheds with supply information. ----
-                                     checkboxInput(inputId = "supply_filter",
-                                                   label = "Filter for watersheds with available supply information",
-                                                   value = FALSE
-                                     ),
-
-                                     
-                                     #### d_scene_selected: Select demand scenario(s). ----
-                                     selectizeInput(inputId = "d_scene_selected",
-                                                    label = "Select Up To Two Demand Scenarios:",
-                                                    choices = NULL,
-                                                    # choices = sort(unique(demand[[input$huc8_selected]]$d_scenario)),
-                                                    selected = "Reported Diversions - 2011",
-                                                    multiple = TRUE,
-                                                    options = list(maxItems = 2)
-                                     ),
-                                     
-                                     #### priority_selected: Select priority year to slice for vsd_plot. ----
-                                     selectInput(inputId = "priority_selected",
-                                                 label = "Select Demand Priority Year:",
-                                                 choices = NULL,
-                                                 selected = NULL,
-                                                 multiple = FALSE),
-                                     
-                                     #### s_scene_selected: Select supply scenario(s) for vsd_plot. ----
-                                     selectizeInput(inputId = "s_scene_selected",
-                                                    label = "Select Up To Three Supply Scenarios:",
-                                                    choices = NULL,
-                                                    selected = NULL,
-                                                    multiple = TRUE,
-                                                    options = list(maxItems = 3)
-                                     ),
-                                     
-                                     #### wrt_selected: Select water right types to include in dbwrt_plot. ----
-                                     checkboxGroupInput(inputId = "wrt_selected",
-                                                        label = "Select Water Right Type(s) to Display:",
-                                                        choices = NULL,
-                                                        selected = NULL),
-                                     
-                                     #### no_supply_text: Conditional supply availability text. ----
-                                     htmlOutput(outputId = "no_supply_text"),
-                                     
-                                     # #### Copyright. ----
-                                     # HTML('<center><img src="waterboards_logo_high_res.jpg", height = "70px"><img src="DWR-ENF-Logo-2048.png", height = "70px"></center>'),
-                                     # HTML(paste("<center>©", year(now()), 
-                                     #            "State Water Resources Control Board</center>"))
-                        ), # End sidebarPanel.
-                        
-                        ### Main Panel. ----
-                        mainPanel(width = 10,
-                                  #### Plot/Data/Watershed map Tabs. ----
-                                  tabsetPanel(type = "pills",
-                                              
-                                              ##### Plot tabs. ----
-                                              tabPanel("By Watershed",
-                                                       fluidRow(
-                                                         column(width = 12,
-                                                                uiOutput("debug_text")
-                                                         )
-                                                       )
-                                              )
-                                  )
-                        )
-                      )
-             )
-  )
-)
-
-                   
-                                  
-                                  ###### DEBUG ----
-                                  h3("Debug"),
-                                  uiOutput("debug_text")
- 
-  ) # End fluidPage
+  
+  
+  #### huc8_selected: Select HUC-8 watershed. ----
+  selectInput(inputId = "huc8_selected",
+              label = "Select HUC-8 Watershed:",
+              choices = NULL,
+              selected = NULL,
+              multiple = FALSE
+  ),
+  
+  #### Filter for watersheds with supply information. ----
+  checkboxInput(inputId = "supply_filter",
+                label = "Filter for watersheds with available supply information",
+                value = FALSE
+  ),
+  
+  
+  ###### DEBUG ----
+  uiOutput("debug_text")
+  
+) # End fluidPage
 
 
 # SERVER. ---------------------------------------------------------------------
@@ -140,47 +80,27 @@ server <- function(input, output, session) {
   
   # ** DEBUG TEXT ** ----
   
-  output$debug_text <- renderUI(HTML(paste0("huc8_selected: ", 
-                                            input$huc8_selected, br()#,
-                                            # "d_scene_selected: ", 
-                                            # input$d_scene_selected, br(),
-                                            # "s_scene_selected: ",
-                                            # input$s_scene_selected
-                                            )
-                                     )
-                                )
+  output$debug_text <- renderUI(HTML(paste0(br(), br(),
+                                            h3("Debug"), br(),
+                                            "huc8_selected: ", 
+                                            input$huc8_selected, br(),
+                                            "d_scene_selected: ",
+                                            input$d_scene_selected, br(),
+                                            "s_scene_selected: ",
+                                            input$s_scene_selected
+  )
+  )
+  )
   
   # OBSERVERS. ----
+  # 
+  # huc8_choices <- reactive({
+  #   ifelse(input$supply_filter,
+  #          demand_choices[demand_choices %in% supply_choices],
+  #          demand_choices)
+  # })
   
   ## Filter for watersheds that have supply data. ----
-
-  huc8_choices <- reactive({
-    ifelse(input$supply_filter,
-           sort(names(demand)[names(demand) %in% names(supply)]),
-           sort(names(demand)))
-  })
-  
-  
-  observeEvent(input$supply_filter, {
-    # huc8_choices <-   ifelse(input$supply_filter,
-    #          sort(names(demand)[names(demand) %in% names(supply)]),
-    #          sort(names(demand)))
-  
-      updateSelectInput(session,
-                        inputId = "huc8_selected",
-                        choices = huc8_choices(),
-                        selected = sample(huc8_choices(), 1))
-
-  })
-  
-  ## Update demand scenario choices. ----
-  observeEvent(input$huc8_selected, {
-    choices <- sort(unique(demand[[input$huc8_selected]]$d_scenario))
-    updateSelectizeInput(session,
-                         inputId = "d_scene_selected",
-                         choices = choices,
-                         selected = "Reported Diversions - 2020")
-  }
   
   observeEvent(input$supply_filter, {
     if (input$supply_filter) { 
@@ -191,26 +111,10 @@ server <- function(input, output, session) {
     updateSelectInput(session,
                       inputId = "huc8_selected",
                       choices = huc8_choices,
-                      selected = sample(huc8_choices, 1))
+                      selected = sample(huc8_choices, 1)
+    )
   })
   
-  
-  # ## Filter for watersheds that have supply data. ----
-  # huc8_choices <- reactive({
-  #   ifelse(input$supply_filter,
-  #          demand_choices[demand_choices %in% supply_choices],
-  #          demand_choices)
-  # })
-  # 
-  # observeEvent(input$supply_filter, {
-  #   req(input$supply_filter)
-  #   updateSelectInput(session,
-  #                     inputId = "huc8_selected",
-  #                     choices = huc8_choices(),
-  #                     selected = sample(demand_choices, 1))
-  # })
-  # 
-
 }
 
 # APP --------------------------------------------------------------------------
