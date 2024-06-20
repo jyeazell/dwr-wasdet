@@ -93,13 +93,7 @@ server <- function(input, output, session) {
   )
   
   # OBSERVERS. ----
-  # 
-  # huc8_choices <- reactive({
-  #   ifelse(input$supply_filter,
-  #          demand_choices[demand_choices %in% supply_choices],
-  #          demand_choices)
-  # })
-  
+ 
   ## Filter for watersheds that have supply data. ----
   
   observeEvent(input$supply_filter, {
