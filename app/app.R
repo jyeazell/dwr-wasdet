@@ -138,7 +138,8 @@ ui <- fluidPage( # Start fluidPage
                                                                               tabPanel(title = "Demand by Water Right Type",
                                                                                        id = "dbwrt_tab",
                                                                                        fluidRow(
-                                                                                         
+                                                                                         br(),
+                                                                                         withSpinner(plotOutput(outputId = "dbwrt_plot"))
                                                                                        )
                                                                               ),
                                                                               
@@ -146,7 +147,8 @@ ui <- fluidPage( # Start fluidPage
                                                                               tabPanel(title = "Demand by Priority",
                                                                                        id = "dbp_tab",
                                                                                        fluidRow(
-                                                                                         
+                                                                                         br(),
+                                                                                         withSpinner(plotOutput(outputId = "dbp_plot"))
                                                                                        )
                                                                               ),
                                                                               
@@ -279,7 +281,7 @@ server <- function(input, output, session) {
   )
   
   ## Setup. ----
-
+  
   ## Helper Functions. ----
   
   # Define plot height function to keep facet panels roughly the same height
@@ -291,7 +293,7 @@ server <- function(input, output, session) {
   
   ## OBSERVERS. ----
   
-  ## Update input choices by plot tab. ----
+  ### Update input choices by plot tab. ----
   observe({
     if (input$plot_tabs == "Demand by Water Right Type") {
       hideElement(id = "no_supply_text")
@@ -344,7 +346,7 @@ server <- function(input, output, session) {
                          selected = "Reported Diversions - 2023")
   })
   
-  #### Update supply scenario choices. ----
+  ### Update supply scenario choices. ----
   observeEvent(input$huc8_selected, {
     req(input$huc8_selected)
     if( !is.null(supply[[input$huc8_selected]]) ) {
@@ -359,20 +361,20 @@ server <- function(input, output, session) {
     
   })
   
-  ## Update priority year choices. ----
+  ### Update priority year choices. ----
   py_choice_list <- reactive({
     sort(na.omit(unique(demand[[input$huc8_selected]]$p_year)), 
          decreasing = TRUE)
   })
   observeEvent(input$huc8_selected, {
     req(input$huc8_selected)
-    choices <- py_choice_list()[py_choice_list() > min(py_choice_list())]
+    py_choices <- py_choice_list()#[py_choice_list() > min(py_choice_list())]
     updateSelectInput(session, "priority_selected",
-                      choices = choices,
-                      selected = max(choices))
+                      choices = py_choices,
+                      selected = max(py_choices))
   })
   
-  ## Update water right type choices. ----
+  ### Update water right type choices. ----
   observeEvent(input$huc8_selected, {
     choices <- unique(demand[[input$huc8_selected]]$wr_type)
     updateCheckboxGroupInput(session = session, 
@@ -380,6 +382,163 @@ server <- function(input, output, session) {
                              choices = choices,
                              selected = choices)
   })
+  
+  ## OUTPUTS ----
+  
+  ### No supply data alert. ----
+  output$no_supply_text <- renderText({ 
+    paste0('<font color=\"#FF0000\"><p><b>',
+           'Supply Data Not Available for This Watershed.',
+           '</b><p></font>') 
+  })
+  
+  ### DBWRT - Demand By Water Right Type Plot (dbwrt). ----
+  
+  #### Build dataset. ----
+  # Demand by water right type dataset.
+  wrt_plot_data <- reactive({ 
+    req(input$huc8_selected)
+    demand[[input$huc8_selected]] %>% 
+      filter(d_scenario %in% input$d_scene_selected,
+             wr_type %in% input$wrt_selected) %>% 
+      group_by(d_scenario, 
+               wr_type, 
+               plot_month = month(plot_date, label = TRUE)) %>%
+      summarize(af_monthly = sum(af_monthly, na.rm = TRUE),
+                af_daily = sum(af_daily, na.rm = TRUE),
+                cfs = sum(cfs, na.rm = TRUE),
+                .groups = "drop")
+  })
+  
+  #### Render plot. ----
+  output$dbwrt_plot <- renderPlot({
+    
+    # Validate.
+    validate(
+      need(input$d_scene_selected, 
+           "No data to plot.\nPlease select at least one Demand Scenario."),
+      need(input$huc8_selected, 
+           "No data to plot.\nPlease select a Watershed."),
+      need(nrow(wrt_plot_data()) > 0,
+           "No data for selected water right types.")
+    )
+    
+    # Render.
+    ggplot(data = wrt_plot_data(),
+           aes(x = plot_month,
+               y = cfs,
+               fill = wr_type)) +
+      
+      # Demand bars.
+      geom_col() + 
+      
+      # Y axis format.
+      scale_y_continuous(labels = comma) +
+      
+      # Legend.
+      scale_fill_manual(name = "Water Right Type:",
+                        values = plot_wrt_pal,
+                        limits = sort(unique(wrt_plot_data()$wr_type))) +
+      
+      # labels
+      labs(title = "Monthly Demand by Water Right Type",
+           y = "Cubic Feet per Second (cfs)") +
+      
+      # Facet on demand scenario.
+      facet_wrap(~ d_scenario, 
+                 ncol = 1,
+                 scales = "free_x") +
+      
+      # Theme.
+      theme_minimal() +
+      theme(
+        plot.title = element_text(size = rel(2.0)),
+        strip.text.x = element_text(size = rel(2.0)),
+        axis.title = element_text(size = rel(1.2)),
+        axis.text = element_text(size = rel(1.2)),
+        legend.text = element_text(size = rel(1.2)),
+        legend.title = element_text(size = rel(1.2)),
+        legend.justification = "top",
+        legend.box = "horizontal",
+        legend.direction = "vertical",
+        axis.title.x = element_blank())
+    
+  }, height = function() plot_height()
+  )
+  
+  ## DBP - Demand by Priority plot. ----
+  
+  ### Build legend. ----
+  
+  # Demand by Priority legend.
+  priority_plot_pal <- reactive({
+    
+  })
+  
+  ### Build dataset. ----
+  
+  # Demand by priority dataset.
+  dbp_plot_data <- reactive({
+    demand[[input$huc8_selected]] %>% 
+      filter(d_scenario %in% input$d_scene_selected) %>% #,
+      #       wr_type %in% input$wrt_selected) %>% 
+      group_by(d_scenario, 
+               priority, 
+               plot_month = month(plot_date, label = TRUE)) %>%
+      summarize(af_monthly = sum(af_monthly, na.rm = TRUE),
+                af_daily = sum(af_daily, na.rm = TRUE),
+                cfs = sum(cfs, na.rm = TRUE),
+                .groups = "drop") %>% 
+      mutate(priority = ordered(priority, levels = names(priority_pal)))
+  })
+  
+  ### Render plot. ----
+  output$dbp_plot <- renderPlot({
+    
+    # Render.
+    ggplot(data = dbp_plot_data(),
+           aes(x = plot_month,
+               y = cfs,
+               fill = priority)) +
+      
+      # Demand bars.
+      geom_col() + 
+      
+      # Y axis format.
+      scale_y_continuous(labels = comma) +
+      
+      # Legend.
+      scale_fill_manual(name = "Priority:",
+                        values = priority_pal,
+                        limits = sort(unique(dbp_plot_data()$priority))) +
+      #    guides(fill = guide_legend(ncol = 2)) +
+      
+      
+      # labels
+      labs(title = "Monthly Demand by Priority",
+           y = "Cubic Feet per Second (cfs)") +
+      
+      # Facet on demand scenario.
+      facet_wrap(~ d_scenario, 
+                 ncol = 1,
+                 scales = "free_x") +
+      
+      # Theme.
+      theme_minimal() +
+      theme(
+        plot.title = element_text(size = rel(2.0)),
+        strip.text.x = element_text(size = rel(2.0)),
+        axis.title = element_text(size = rel(1.2)),
+        axis.text = element_text(size = rel(1.2)),
+        legend.text = element_text(size = rel(1.2)),
+        legend.title = element_text(size = rel(1.2)),
+        legend.justification = "top",
+        legend.box = "horizontal",
+        legend.direction = "vertical",
+        axis.title.x = element_blank())
+    
+  }, height = function() plot_height()
+  )
   
 }
 
