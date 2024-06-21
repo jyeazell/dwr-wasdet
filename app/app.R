@@ -17,7 +17,7 @@ if (!("package:shinycssloaders" %in% search())) {
 develop <- TRUE
 debug_flag <- FALSE
 
-# Debug. #####
+## Debug. #####
 if (debug_flag) {
   if (!("package:reactlog" %in% search())) {
     suppressMessages(library(reactlog))
@@ -26,13 +26,38 @@ if (debug_flag) {
   reactlog_enable()
 }
 
-# Initialization. ----
+## Initialization. ----
 
-## Load libraries. ----
+### Load libraries. ----
 source("m-load-libraries.R")
 
-## Load data files. ----
+### Load data files. ----
 source("m-load-prep.R", local = TRUE)
+
+## Functions, ----
+
+### Build plot supply data frame.
+build_plot_supply <- function(x, s_scene, d_scene) {
+  y <- x %>% 
+    filter(s_scenario %in% s_scene) %>%
+    mutate(source = "old",
+           fill_color = NA,
+           plot_group = "supply") %>%
+    full_join(.,
+              as_tibble(d_scene),
+              by = character()) %>%
+    select(source,
+           d_scenario = value,
+           s_scenario,
+           plot_date,
+           fill_color,
+           af_monthly,
+           af_daily,
+           cfs,
+           plot_group,
+           plot_category)
+  return(y)
+}
 
 ## Application title.----
 app_title <- paste("Division of Water Rights",
@@ -156,7 +181,8 @@ ui <- fluidPage( # Start fluidPage
                                                                               tabPanel(title = "Supply-Demand Scenarios",
                                                                                        id = "vsd_tab",
                                                                                        fluidRow(
-                                                                                         
+                                                                                         br(),
+                                                                                         withSpinner(plotOutput(outputId = "vsd_plot"))
                                                                                        )
                                                                               )
                                                                               
@@ -164,103 +190,106 @@ ui <- fluidPage( # Start fluidPage
                                                                   )      
                                                            ),
                                                            
-                                                           ##### Mini map column. ----
-                                                           
-                                                           ###### Mini map. ----
+                                                           # Mini map column.
                                                            column(width = 5,
                                                                   fluidRow(
-                                                                    
-                                                                    
-                                                                    br(),
-                                                                    
-                                                                    # ###### DEBUG NOTES. ----
-                                                                    uiOutput("debug_text")
+                                                                    fluidRow(
+                                                                      h4("Watershed Location and PODs"),
+                                                                      leafletOutput(outputId = "mini_map",
+                                                                                    height = "500px",
+                                                                                    width = "95%"),
+                                                                      br(),
+                                                                      
+                                                                      ###### DEBUG NOTES. ----
+                                                                      uiOutput("debug_text")
+                                                                    )
                                                                   )
                                                            )
+                                                         ),
+                                                         
+                                                         ##### By Water Right tab. ----
+                                                         tabPanel("By Water Right",
+                                                                  fluidRow(
+                                                                    
+                                                                  )
+                                                         ),
+                                                         
+                                                         ##### Data tab. ----
+                                                         tabPanel("Data",
+                                                                  fluidRow(
+                                                                    
+                                                                  )
+                                                         ),
+                                                         
+                                                         ##### California Watershed Map tab. ----
+                                                         tabPanel("California Watershed Map",
+                                                                  fluidRow(
+                                                                    
+                                                                  )
                                                          )
-                                                ),
-                                                
-                                                ##### By Water Right tab. ----
-                                                tabPanel("By Water Right",
-                                                         fluidRow(
-                                                           
-                                                         )
-                                                ),
-                                                
-                                                ##### Data tab. ----
-                                                tabPanel("Data",
-                                                         fluidRow(
-                                                           
-                                                         )
-                                                ),
-                                                
-                                                ##### California Watershed Map tab. ----
-                                                tabPanel("California Watershed Map",
-                                                         fluidRow(
-                                                           
-                                                         )
-                                                )
-                                    )      
-                          ) # End mainPanel
-                          
-                        ) # End sidebarLayout
-                      ) # End fluidRow
-             ), # End tabPanel
-             
-             ### Dataset Information. ----
-             navbarMenu("Dataset Information",
-                        icon = icon("table"),
-                        
-                        #### Demand Scenarios. ----
-                        tabPanel("Demand Scenarios",
-                                 icon = icon("faucet"),
-                                 # includeHTML("./docs/demand-scenarios.html")
-                        ),
-                        
-                        #### Supply Scenarios. ----
-                        tabPanel("Supply Scenarios",
-                                 icon = icon("water")
-                        ),
-                        
-                        #### Other Data. ----
-                        tabPanel("Other Data",
+                                                )      
+                                    ) # End mainPanel
+                                    
+                          ) # End sidebarLayout
+                        ) # End fluidRow
+                      ), # End tabPanel
+                      
+                      ### Dataset Information. ----
+                      navbarMenu("Dataset Information",
                                  icon = icon("table"),
                                  
-                        )
-             ),
-             
-             ### About/Help. ----
-             navbarMenu("About/Help",
-                        icon = icon("info-circle"),
-                        
-                        #### About menu. ----
-                        tabPanel("About",
+                                 #### Demand Scenarios. ----
+                                 tabPanel("Demand Scenarios",
+                                          icon = icon("faucet"),
+                                          # includeHTML("./docs/demand-scenarios.html")
+                                 ),
+                                 
+                                 #### Supply Scenarios. ----
+                                 tabPanel("Supply Scenarios",
+                                          icon = icon("water")
+                                 ),
+                                 
+                                 #### Other Data. ----
+                                 tabPanel("Other Data",
+                                          icon = icon("table"),
+                                          
+                                 )
+                      ),
+                      
+                      ### About/Help. ----
+                      navbarMenu("About/Help",
                                  icon = icon("info-circle"),
-                                 # includeMarkdown("./docs/ABOUT.md")
-                        ),
-                        
-                        #### How to Use the Filters menu. ----
-                        tabPanel("How To Use The Filters",
-                                 icon = icon("life-ring"),
-                                 "How To Use The Filters", br(),
-                                 "Content Goes Here"
-                        ),
-                        
-                        #### FAQ menu. ----
-                        tabPanel("Frequently Asked Questions",
-                                 icon = icon("question"),
-                                 # includeHTML(("./docs/faq.html"))
-                        ),
-                        
-                        #### Report Bugs menu. ----
-                        tabPanel("Report Bugs/Data Issues",
-                                 icon = icon("bug"),
-                                 # includeHTML(("./docs/bugs-issues.html"))
-                        )
-             )
-  ),
-  selected = "Explore"
-) # end fluidPage_1
+                                 
+                                 #### About menu. ----
+                                 tabPanel("About",
+                                          icon = icon("info-circle"),
+                                          # includeMarkdown("./docs/ABOUT.md")
+                                 ),
+                                 
+                                 #### How to Use the Filters menu. ----
+                                 tabPanel("How To Use The Filters",
+                                          icon = icon("life-ring"),
+                                          "How To Use The Filters", br(),
+                                          "Content Goes Here"
+                                 ),
+                                 
+                                 #### FAQ menu. ----
+                                 tabPanel("Frequently Asked Questions",
+                                          icon = icon("question"),
+                                          # includeHTML(("./docs/faq.html"))
+                                 ),
+                                 
+                                 #### Report Bugs menu. ----
+                                 tabPanel("Report Bugs/Data Issues",
+                                          icon = icon("bug"),
+                                          # includeHTML(("./docs/bugs-issues.html"))
+                                 )
+                      )
+             ),
+             selected = "Explore"
+             
+  ) # End navbarPage
+) # End fluidPage
 
 
 
@@ -539,6 +568,294 @@ server <- function(input, output, session) {
     
   }, height = function() plot_height()
   )
+  
+  ## VSD - Supply-Demand Scenario plot. ----
+  
+  ### Build plot data frame. ----
+  
+  #### Demand plot data. ----
+  vsd_plot_demand <- reactive({
+    filter(demand[[input$huc8_selected]], 
+           d_scenario %in% input$d_scene_selected) %>%
+      mutate(fill_color = if_else(priority == "Statement Demand",
+                                  "Statement Demand",
+                                  if_else(priority == "Statement Demand",
+                                          "Statement Demand",
+                                          if_else(p_year >= input$priority_selected,
+                                                  "Junior Post-14", "Post-14"))),
+             fill_color = ordered(fill_color, levels = wa_demand_order)) %>%
+      group_by(d_scenario, plot_date, fill_color, plot_category) %>%
+      summarise(af_monthly = sum(af_monthly, na.rm = TRUE),
+                af_daily = sum(af_daily, na.rm = TRUE),
+                cfs = sum(cfs, na.rm = TRUE),
+                .groups = "drop") %>% 
+      mutate(plot_group = "demand",
+             s_scenario = NA) %>%
+      select(d_scenario, 
+             s_scenario, 
+             plot_date,
+             fill_color, 
+             af_monthly,
+             af_daily, 
+             cfs, 
+             plot_group,
+             plot_category) %>% 
+      # Add boundary points to facilitate barplot vis and correct stacking.
+      bind_rows(old = .,
+                new = mutate(., 
+                             plot_date = ceiling_date(x = plot_date,
+                                                      unit = "month") - 1),
+                .id = "source") %>% 
+      arrange(plot_date, source)
+  })
+  
+  #### Supply plot data. ----
+  vsd_plot_supply <- reactive({
+    if( !is.null(supply[[input$huc8_selected]])) {
+      build_plot_supply(supply[[input$huc8_selected]], 
+                        input$s_scene_selected, 
+                        input$d_scene_selected)
+    } else {
+      NA
+    }
+  })
+  
+  #### Combine plot data. ----
+  vsd_plot_data <- reactive({
+    rbind(vsd_plot_demand(), 
+          #         if(is.data.frame(vsd_plot_supply()) & mean(names(vsd_plot_supply()) == names(vsd_plot_demand())) == 1) vsd_plot_supply())
+          if(is.data.frame(vsd_plot_supply())) vsd_plot_supply())
+    
+  })
+  
+  ### Render plot. ----
+  output$vsd_plot <- renderPlot({
+    
+    # Validate.
+    validate(
+      need(input$d_scene_selected, 
+           "No data to plot.\nPlease slelect at least one Demand Scenario.")
+    )
+    
+    # Render.
+    ggplot(data = vsd_plot_data(),
+           aes(x = plot_date,
+               y = cfs)) +
+      
+      # Demand.
+      geom_area(data = subset(vsd_plot_data(), plot_group == "demand"),
+                position = "stack",
+                aes(fill = fill_color)) +
+      
+      # Supply.
+      geom_point(data = subset(vsd_plot_data(), plot_group == "supply"),
+                 aes(color = s_scenario,
+                     shape = s_scenario),
+                 size = 7) +
+      geom_line(data = subset(vsd_plot_data(), plot_group == "supply"),
+                aes(color = s_scenario),
+                linetype = "dashed") +
+      
+      # X axis format.
+      scale_x_date(date_labels = "%b %d",
+                   date_minor_breaks = "1 month") +
+      
+      # Y axis format.
+      scale_y_continuous(labels = comma) +
+      
+      # Demand legend.
+      scale_fill_manual(name = "Demand Priority:",
+                        values = wa_demand_pal,
+                        labels = c(paste(input$priority_selected, 
+                                         "& Junior Post-14 Demand"),
+                                   paste(as.numeric(input$priority_selected) -1,
+                                         "& Senior Post-14 Demand"),
+                                   "Statement Demand"),
+                        limits = sort(unique(vsd_plot_data()$fill_color))) +
+      
+      # Supply legend.
+      scale_shape_manual(name = "Supply Scenario:",
+                         values = wa_supply_shapes) +
+      scale_color_manual(name = "Supply Scenario:",
+                         values = wa_supply_pal) +
+      
+      # Facet on demand scenario.
+      facet_wrap(~ d_scenario, 
+                 ncol = 1,
+                 scales = "free_x") +
+      
+      # Labels.
+      labs(y = "Cubic Feet per Second (cfs)") +
+      
+      # Theme.
+      theme_minimal() +
+      theme(
+        plot.title = element_text(size = rel(2.0)),
+        strip.text.x = element_text(size = rel(2.0)),
+        axis.title = element_text(size = rel(1.2)),
+        axis.text = element_text(size = rel(1.2)),
+        legend.position = "bottom",
+        legend.text = element_text(size = rel(1.2)),
+        legend.title = element_text(size = rel(1.2)),
+        legend.box = "horizontal",
+        legend.direction = "vertical",
+        panel.spacing = unit(2, "lines"),
+        axis.title.x = element_blank()
+      )
+    
+  }, height = function() plot_height())
+  
+  ## Mini Map. ----
+  
+  # Filter watershed polygon.
+  plot_poly <- reactive({
+    huc8_layer %>% filter(huc8_name %in% input$huc8_selected)
+  })
+  
+  # Filter POD points.
+  pod_points <- reactive({
+    pods %>% 
+      filter(huc8_name %in% input$huc8_selected) %>% 
+      mutate(vsd_fill_color = if_else(priority == "Statement Demand",
+                                      "Statement Demand",
+                                      if_else(p_year >= input$priority_selected,
+                                              "Junior Post-14", "Post-14")))
+  })
+  
+  # Filter gage stations.
+  station_points <- reactive({
+    station_locs %>% 
+      filter(huc8_name %in% input$huc8_selected)
+  })
+  
+  output$mini_map <- renderLeaflet({
+    
+    # Validate.
+    validate(
+      need(nrow(pod_points()) > 0, 
+           paste0("No Data Available.\n",
+                  "Please select other Watershed(s) or Water Right Type(s)."))
+    )
+    
+    # Render.
+    leaflet() %>%
+      
+      # Add base map.
+      addProviderTiles(providers$CartoDB.Positron) %>%
+      addPolygons(group = "base",
+                  data = plot_poly(),
+                  weight = 3,
+                  col = "blue",
+                  fill = TRUE,
+                  fillOpacity = 0)
+  })
+  
+  ### Update POD points and legends. ----
+  observe({
+    
+    pod_points <- pod_points()
+    station_points <- station_points()
+    
+    # Create POD label look-up.
+    pod_labs <- lapply(seq(nrow(pod_points)), function(i) {
+      paste0('Water Right ID: ', st_drop_geometry(pod_points[i, "wr_id"]), '<br>',
+             'Owner: ', st_drop_geometry(pod_points[i, "owner"]), '<br>',
+             'Water Right Type: ', st_drop_geometry(pod_points[i, "wr_type"]), '<br>',
+             'Priority: ' , st_drop_geometry(pod_points[i, "priority"]), '<br>',
+             'Status: ', st_drop_geometry(pod_points[i, "wr_status"])
+      )
+    })
+    
+    station_labs <- lapply(seq(nrow(station_points)), function(i) {
+      paste0('<b>Station: </b>', station_points[i, "station_id"], '<br>',
+             '<b>Name: </b>', station_points[i, "station_name"], '<br>',
+             '<b>Data Provider: </b>', station_points[i, "data_provider"], '<br>',
+             '<b>', station_points[i, "link"], '</b>')
+    })
+    
+    #### vsd plot points. ----
+    if( input$plot_tabs == "Supply-Demand Scenarios" ) {
+      
+      leafletProxy(mapId = "mini_map") %>%
+        clearGroup(group = "content") %>% 
+        clearControls() %>%
+        
+        # POD points.
+        addCircleMarkers(group = "content",
+                         data = pod_points,
+                         radius = 4,
+                         fillOpacity = 0.8,
+                         stroke = FALSE,
+                         weight = 2,
+                         fillColor = ~map_demand_pal(vsd_fill_color),
+                         label = lapply(pod_labs, HTML)) %>%
+        
+        # Gage station markers.
+        addMarkers(group = "content",
+                   data = station_points(),
+                   lat = ~lat,
+                   lng = ~lng,
+                   icon = station_icon,
+                   popup = lapply(station_labs, HTML)) %>% 
+        
+        # Color legend.
+        addLegend(position = "topright",
+                  colors = wa_demand_pal[1:3],
+                  labels = c(paste(input$priority_selected, "& Junior Post-14 Demand"),
+                             paste(as.numeric(input$priority_selected) -1, "& Senior Post-14 Demand"),
+                             "Statement Demand"),
+                  title = "Demand Priority",
+                  opacity = 1) %>% 
+        
+        # Shape legend.
+        addControl(html = html_legend,
+                   position = "bottomleft")
+      
+    } else
+      
+      ### dbwrt plot points. ----
+    if( input$plot_tabs == "Demand by Water Right Type" ) {
+      
+      leafletProxy(mapId = "mini_map") %>%
+        clearGroup(group = "content") %>% 
+        clearControls() %>%
+        addCircleMarkers(group = "content",
+                         data = pod_points,
+                         radius = 4,
+                         fillOpacity = 0.8,
+                         stroke = FALSE,
+                         weight = 2,
+                         fillColor = ~map_wrt_pal(wr_type), 
+                         label = lapply(pod_labs, HTML)
+        ) %>% 
+        addLegend(position = "topright",
+                  pal = map_wrt_pal,
+                  values = pod_points$wr_type,
+                  title = "Water Right Type",
+                  opacity = 1)
+    } else
+      
+      ### vbp plot points. ----
+    if( input$plot_tabs == "Demand by Priority" ) {
+      
+      leafletProxy(mapId = "mini_map") %>%
+        clearGroup(group = "content") %>% 
+        clearControls() %>%
+        addCircleMarkers(group = "content",
+                         data = pod_points,
+                         radius = 4,
+                         fillOpacity = 0.9,
+                         stroke = FALSE,
+                         #  weight = 2,
+                         fillColor = ~map_priority_pal(priority), 
+                         label = lapply(pod_labs, HTML)
+        ) %>% 
+        addControl(html = "See plot legend for color categories.",
+                   position = "topright")
+    }
+    
+  })
+  
   
 }
 
