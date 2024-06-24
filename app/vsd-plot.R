@@ -88,38 +88,27 @@ vsd_plot_supply <-
 
 
 #### Combine plot data. ----
-vsd_plot_data <- reactive({
-  rbind(vsd_plot_demand(), 
-        #         if(is.data.frame(vsd_plot_supply()) & mean(names(vsd_plot_supply()) == names(vsd_plot_demand())) == 1) vsd_plot_supply())
-        if(is.data.frame(vsd_plot_supply())) vsd_plot_supply())
+vsd_plot_data <- bind_rows(vsd_plot_demand, 
+        if(is.data.frame(vsd_plot_supply)) vsd_plot_supply) %>% 
+  mutate(plot_date = update(plot_date, year = 2000))
   
-})
 
-### Render plot. ----
-output$vsd_plot <- renderPlot({
-  
-  # Validate.
-  validate(
-    need(input$d_scene_selected, 
-         "No data to plot.\nPlease slelect at least one Demand Scenario.")
-  )
-  
   # Render.
-  ggplot(data = vsd_plot_data(),
+  ggplot(data = vsd_plot_data,
          aes(x = plot_date,
              y = cfs)) +
     
     # Demand.
-    geom_area(data = subset(vsd_plot_data(), plot_group == "demand"),
+    geom_area(data = subset(vsd_plot_data, plot_group == "demand"),
               position = "stack",
               aes(fill = fill_color)) +
     
     # Supply.
-    geom_point(data = subset(vsd_plot_data(), plot_group == "supply"),
+    geom_point(data = subset(vsd_plot_data, plot_group == "supply"),
                aes(color = s_scenario,
                    shape = s_scenario),
                size = 7) +
-    geom_line(data = subset(vsd_plot_data(), plot_group == "supply"),
+    geom_line(data = subset(vsd_plot_data, plot_group == "supply"),
               aes(color = s_scenario),
               linetype = "dashed") +
     
@@ -133,12 +122,12 @@ output$vsd_plot <- renderPlot({
     # Demand legend.
     scale_fill_manual(name = "Demand Priority:",
                       values = wa_demand_pal,
-                      labels = c(paste(input$priority_selected, 
+                      labels = c(paste(input.priority_selected, 
                                        "& Junior Post-14 Demand"),
-                                 paste(as.numeric(input$priority_selected) -1,
+                                 paste(as.numeric(input.priority_selected) -1,
                                        "& Senior Post-14 Demand"),
                                  "Statement Demand"),
-                      limits = sort(unique(vsd_plot_data()$fill_color))) +
+                      limits = sort(unique(vsd_plot_data$fill_color))) +
     
     # Supply legend.
     scale_shape_manual(name = "Supply Scenario:",
@@ -169,5 +158,3 @@ output$vsd_plot <- renderPlot({
       panel.spacing = unit(2, "lines"),
       axis.title.x = element_blank()
     )
-  
-}, height = function() plot_height())

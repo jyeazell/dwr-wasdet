@@ -622,9 +622,10 @@ server <- function(input, output, session) {
   
   #### Combine plot data. ----
   vsd_plot_data <- reactive({
-    rbind(vsd_plot_demand(), 
+    vsd_plot_data <- rbind(vsd_plot_demand(), 
           #         if(is.data.frame(vsd_plot_supply()) & mean(names(vsd_plot_supply()) == names(vsd_plot_demand())) == 1) vsd_plot_supply())
-          if(is.data.frame(vsd_plot_supply())) vsd_plot_supply())
+          if(is.data.frame(vsd_plot_supply())) vsd_plot_supply()) %>% 
+      mutate(plot_date = update(plot_date, year = 2000))
     
   })
   
