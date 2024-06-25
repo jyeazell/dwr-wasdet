@@ -144,13 +144,13 @@ ui <- fluidPage( # Start fluidPage
                           ), # End sidebarPanel
                           
                           #### Main Panel. ----
-                          mainPanel(width = 10,
+                          mainPanel(width = 10, # Begin mainPanel
                                     
                                     # Plot/Data/Watershed map Tabs.
-                                    tabsetPanel(type = "pills",
+                                    tabsetPanel(type = "pills", # Begin tabsetPanel
                                                 
                                                 ##### Plot tabs. ----
-                                                tabPanel("By Watershed",
+                                                tabPanel("By Watershed", # Begin "By Watershed" tabPanel
                                                          fluidRow(
                                                            
                                                            # Plot column.
@@ -188,107 +188,108 @@ ui <- fluidPage( # Start fluidPage
                                                                               
                                                                               
                                                                   )      
-                                                           ),
+                                                           ), # End Plot column.
                                                            
                                                            # Mini map column.
                                                            column(width = 5,
                                                                   fluidRow(
-                                                                    fluidRow(
-                                                                      h4("Watershed Location and PODs"),
-                                                                      leafletOutput(outputId = "mini_map",
-                                                                                    height = "500px",
-                                                                                    width = "95%"),
-                                                                      br(),
-                                                                      
-                                                                      ###### DEBUG NOTES. ----
-                                                                      uiOutput("debug_text")
-                                                                    )
+                                                                    h4("Watershed Location and PODs"),
+                                                                    leafletOutput(outputId = "mini_map",
+                                                                                  height = "500px",
+                                                                                  width = "95%"),
+                                                                    br()
+                                                                    
+                                                                    ###### DEBUG NOTES. ----
+                                                                    uiOutput("debug_text")
                                                                   )
                                                            )
-                                                         ),
-                                                         
-                                                         ##### By Water Right tab. ----
-                                                         tabPanel("By Water Right",
-                                                                  fluidRow(
-                                                                    
-                                                                  )
-                                                         ),
-                                                         
-                                                         ##### Data tab. ----
-                                                         tabPanel("Data",
-                                                                  fluidRow(
-                                                                    
-                                                                  )
-                                                         ),
-                                                         
-                                                         ##### California Watershed Map tab. ----
-                                                         tabPanel("California Watershed Map",
-                                                                  fluidRow(
-                                                                    
-                                                                  )
-                                                         )
-                                                )      
-                                    ) # End mainPanel
+                                                         ) # End Mini map column.
+                                                ), # End fluidRow
+                                    ), # End "By Watershed" tabPanel
                                     
-                          ) # End sidebarLayout
-                        ) # End fluidRow
-                      ), # End tabPanel
-                      
-                      ### Dataset Information. ----
-                      navbarMenu("Dataset Information",
-                                 icon = icon("table"),
-                                 
-                                 #### Demand Scenarios. ----
-                                 tabPanel("Demand Scenarios",
-                                          icon = icon("faucet"),
-                                          # includeHTML("./docs/demand-scenarios.html")
-                                 ),
-                                 
-                                 #### Supply Scenarios. ----
-                                 tabPanel("Supply Scenarios",
-                                          icon = icon("water")
-                                 ),
-                                 
-                                 #### Other Data. ----
-                                 tabPanel("Other Data",
-                                          icon = icon("table"),
-                                          
-                                 )
-                      ),
-                      
-                      ### About/Help. ----
-                      navbarMenu("About/Help",
-                                 icon = icon("info-circle"),
-                                 
-                                 #### About menu. ----
-                                 tabPanel("About",
-                                          icon = icon("info-circle"),
-                                          # includeMarkdown("./docs/ABOUT.md")
-                                 ),
-                                 
-                                 #### How to Use the Filters menu. ----
-                                 tabPanel("How To Use The Filters",
-                                          icon = icon("life-ring"),
-                                          "How To Use The Filters", br(),
-                                          "Content Goes Here"
-                                 ),
-                                 
-                                 #### FAQ menu. ----
-                                 tabPanel("Frequently Asked Questions",
-                                          icon = icon("question"),
-                                          # includeHTML(("./docs/faq.html"))
-                                 ),
-                                 
-                                 #### Report Bugs menu. ----
-                                 tabPanel("Report Bugs/Data Issues",
-                                          icon = icon("bug"),
-                                          # includeHTML(("./docs/bugs-issues.html"))
-                                 )
+                                    ##### By Water Right tab. ----
+                                    tabPanel("By Water Right",
+                                             fluidRow(
+                                               
+                                             )
+                                    ) # End "By Water Right" tabPanel
+                          ) # End tabsetPanel
+                        ) # End mainPanel
+                      ) # End sidebarLayout
+             ), # End "Explore" tabPanel
+             
+             
+             ##### Data tab. ----
+             tabPanel("Data",
+                      fluidRow(
+                        
                       )
              ),
-             selected = "Explore"
              
-  ) # End navbarPage
+             ##### California Watershed Map tab. ----
+             tabPanel("California Watershed Map",
+                      fluidRow(
+                        
+                      )
+             ),
+             
+             
+             
+             ### Dataset Information. ----
+             navbarMenu("Dataset Information",
+                        icon = icon("table"),
+                        
+                        #### Demand Scenarios. ----
+                        tabPanel("Demand Scenarios",
+                                 icon = icon("faucet"),
+                                 # includeHTML("./docs/demand-scenarios.html")
+                        ),
+                        
+                        #### Supply Scenarios. ----
+                        tabPanel("Supply Scenarios",
+                                 icon = icon("water")
+                        ),
+                        
+                        #### Other Data. ----
+                        tabPanel("Other Data",
+                                 icon = icon("table"),
+                                 
+                        )
+             ),
+             
+             ### About/Help. ----
+             navbarMenu("About/Help",
+                        icon = icon("info-circle"),
+                        
+                        #### About menu. ----
+                        tabPanel("About",
+                                 icon = icon("info-circle"),
+                                 # includeMarkdown("./docs/ABOUT.md")
+                        ),
+                        
+                        #### How to Use the Filters menu. ----
+                        tabPanel("How To Use The Filters",
+                                 icon = icon("life-ring"),
+                                 "How To Use The Filters", br(),
+                                 "Content Goes Here"
+                        ),
+                        
+                        #### FAQ menu. ----
+                        tabPanel("Frequently Asked Questions",
+                                 icon = icon("question"),
+                                 # includeHTML(("./docs/faq.html"))
+                        ),
+                        
+                        #### Report Bugs menu. ----
+                        tabPanel("Report Bugs/Data Issues",
+                                 icon = icon("bug"),
+                                 # includeHTML(("./docs/bugs-issues.html"))
+                        )
+             )
+  ),
+  selected = "Explore"
+  
+) # End navbarPage
 ) # End fluidPage
 
 
@@ -623,8 +624,8 @@ server <- function(input, output, session) {
   #### Combine plot data. ----
   vsd_plot_data <- reactive({
     vsd_plot_data <- rbind(vsd_plot_demand(), 
-          #         if(is.data.frame(vsd_plot_supply()) & mean(names(vsd_plot_supply()) == names(vsd_plot_demand())) == 1) vsd_plot_supply())
-          if(is.data.frame(vsd_plot_supply())) vsd_plot_supply()) %>% 
+                           #         if(is.data.frame(vsd_plot_supply()) & mean(names(vsd_plot_supply()) == names(vsd_plot_demand())) == 1) vsd_plot_supply())
+                           if(is.data.frame(vsd_plot_supply())) vsd_plot_supply()) %>% 
       mutate(plot_date = update(plot_date, year = 2000))
     
   })
