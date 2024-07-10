@@ -98,9 +98,11 @@ ui <- ui <- page_fillable(
              
              # Level 2
              navset_card_pill(
+               
+               ## Sidebar ----
                sidebar = sidebar( # Start Explore sidebar.
                  
-                 ###### Select HUC-8 watershed. ----
+                 ### Select HUC-8 watershed. ----
                  selectInput(inputId = "huc8_selected",
                              label = "Select HUC-8 Watershed:",
                              choices = NULL,
@@ -108,13 +110,13 @@ ui <- ui <- page_fillable(
                              multiple = FALSE
                  ),
                  
-                 ###### Filter for watersheds with supply information. ----
+                 ### Filter for watersheds with supply information. ----
                  checkboxInput(inputId = "supply_filter",
                                label = "Filter for watersheds with available supply information",
                                value = FALSE
                  ),
                  
-                 ###### Select demand scenario(s). ----
+                 ### Select demand scenario(s). ----
                  selectizeInput(inputId = "d_scene_selected",
                                 label = "Select Up To Two Demand Scenarios:",
                                 choices = NULL,
@@ -123,7 +125,7 @@ ui <- ui <- page_fillable(
                                 options = list(maxItems = 2)
                  ),
                  
-                 ###### Select supply scenario(s) for vsd_plot. ----
+                 ### Select supply scenario(s) for vsd_plot. ----
                  selectizeInput(inputId = "s_scene_selected",
                                 label = "Select Up To Three Supply Scenarios:",
                                 choices = NULL,
@@ -132,34 +134,34 @@ ui <- ui <- page_fillable(
                                 options = list(maxItems = 3)
                  ),
                  
-                 ###### Select priority year to slice for vsd_plot. ----
+                 ### Select priority year to slice for vsd_plot. ----
                  selectInput(inputId = "priority_selected",
                              label = "Select Demand Priority Year:",
                              choices = NULL,
                              selected = NULL,
                              multiple = FALSE),
                  
-                 ###### Select water right types to include in dbwrt_plot. ----
+                 ### Select water right types to include in dbwrt_plot. ----
                  checkboxGroupInput(inputId = "wrt_selected",
                                     label = "Select Water Right Type(s) to Display:",
                                     choices = NULL,
                                     selected = NULL),
                  
-                 ###### Conditional supply availability text. ----
+                 ### Conditional supply availability text. ----
                  htmlOutput(outputId = "no_supply_text"),
                  
-                 ##### Copyright. ----
+                 ### Copyright. ----
                  HTML('<center><img src="waterboards_logo_high_res.jpg", height = "70px"><img src="DWR-ENF-Logo-2048.png", height = "70px"></center>'),
                  HTML(paste("<center>©", year(now()), 
                             "State Water Resources Control Board</center>"))
                  
                ), # End Explore sidebar.
                
-               ### Level 1: By Watershed ----
+               ## By Watershed ----
                tabPanel("By Watershed",
                         
                         # Level 2
-                        navset_card_pill(
+                        navset_card_pill(id = "plot_tabs",
                           
                           # Level 2: Demand by Water Right Type
                           tabPanel("Demand by Water Right Type", 
@@ -209,123 +211,123 @@ ui <- ui <- page_fillable(
 # SERVER. ---------------------------------------------------------------------
 server <- function(input, output, session) {
   
-  # ## DEBUG TEXT ----
-  # output$debug_text <- renderUI(HTML(paste0(br(), br(),
-  #                                           h3("Debug"), br(),
-  #                                           "huc8_selected: ", 
-  #                                           input$huc8_selected, br(),
-  #                                           "d_scene_selected: ",
-  #                                           input$d_scene_selected, br(),
-  #                                           "s_scene_selected: ",
-  #                                           input$s_scene_selected)
-  # )
-  # )
-  # 
-  # ## Setup. ----
-  # 
-  # ## Helper Functions. ----
-  # 
-  # # Define plot height function to keep facet panels roughly the same height
-  # # whether displaying one or two.
-  # plot_height <- reactive({
-  #   ifelse(length(input$d_scene_selected) == 1, 480,
-  #          ifelse(length(input$d_scene_selected) == 2, 835, "auto"))
-  # })
-  # 
-  # ## OBSERVERS. ----
-  # 
-  # ### Update input choices by plot tab. ----
-  # observe({
-  #   if (input$plot_tabs == "Demand by Water Right Type") {
-  #     hideElement(id = "no_supply_text")
-  #     hideElement(id = "s_scene_selected")
-  #     hideElement(id = "priority_selected")
-  #     showElement(id = "wrt_selected")
-  #   }
-  #   if (input$plot_tabs == "Demand by Priority") {
-  #     hideElement(id = "no_supply_text")
-  #     hideElement(id = "s_scene_selected")
-  #     hideElement(id = "priority_selected")
-  #     hideElement(id = "wrt_selected")
-  #   }
-  #   if (input$plot_tabs == "Supply-Demand Scenarios" & 
-  #       is.null(supply[[input$huc8_selected]])) {
-  #     showElement(id = "no_supply_text")
-  #     hideElement(id = "s_scene_selected")
-  #     showElement(id = "priority_selected")
-  #     hideElement(id = "wrt_selected")
-  #   }
-  #   if (input$plot_tabs == "Supply-Demand Scenarios" & 
-  #       !is.null(supply[[input$huc8_selected]])) {
-  #     hideElement(id = "no_supply_text")
-  #     showElement(id = "s_scene_selected")
-  #     showElement(id = "priority_selected")
-  #     hideElement(id = "wrt_selected")
-  #   }
-  # })
-  # 
-  # ### Update available watersheds when input$supply_filter check box changes. ----
-  # observeEvent(input$supply_filter, {
-  #   if (input$supply_filter) { 
-  #     huc8_choices <- sort(names(demand)[names(demand) %in% names(supply)])
-  #   } else { 
-  #     huc8_choices <- sort(names(demand))
-  #   }
-  #   updateSelectInput(session,
-  #                     inputId = "huc8_selected",
-  #                     choices = huc8_choices,
-  #                     selected = sample(huc8_choices, 1))
-  # })
-  # 
-  # ### Update demand scenario choices. ----
-  # observeEvent(input$huc8_selected, {
-  #   req(input$huc8_selected)
-  #   choices <- sort(unique(demand[[input$huc8_selected]]$d_scenario))
-  #   updateSelectizeInput(session, 
-  #                        inputId = "d_scene_selected",
-  #                        choices = choices,
-  #                        selected = "Reported Diversions - 2023")
-  # })
-  # 
-  # ### Update supply scenario choices. ----
-  # observeEvent(input$huc8_selected, {
-  #   req(input$huc8_selected)
-  #   if( !is.null(supply[[input$huc8_selected]]) ) {
-  #     supply_choices <- sort(unique(supply[[input$huc8_selected]]$s_scenario))
-  #   }else {
-  #     supply_choices <- character(0)
-  #   }
-  #   updateSelectizeInput(session,
-  #                        inputId = "s_scene_selected",
-  #                        choices = supply_choices,
-  #                        selected = "")
-  #   
-  # })
-  # 
-  # ### Update priority year choices. ----
-  # py_choice_list <- reactive({
-  #   sort(na.omit(unique(demand[[input$huc8_selected]]$p_year)), 
-  #        decreasing = TRUE)
-  # })
-  # observeEvent(input$huc8_selected, {
-  #   req(input$huc8_selected)
-  #   py_choices <- py_choice_list()#[py_choice_list() > min(py_choice_list())]
-  #   updateSelectInput(session, "priority_selected",
-  #                     choices = py_choices,
-  #                     selected = max(py_choices))
-  # })
-  # 
-  # ### Update water right type choices. ----
-  # observeEvent(input$huc8_selected, {
-  #   choices <- unique(demand[[input$huc8_selected]]$wr_type)
-  #   updateCheckboxGroupInput(session = session, 
-  #                            inputId = "wrt_selected",
-  #                            choices = choices,
-  #                            selected = choices)
-  # })
-  # 
-  # ## OUTPUTS ----
-  # 
+  ## DEBUG TEXT ----
+  output$debug_text <- renderUI(HTML(paste0(br(), br(),
+                                            h3("Debug"), br(),
+                                            "huc8_selected: ",
+                                            input$huc8_selected, br(),
+                                            "d_scene_selected: ",
+                                            input$d_scene_selected, br(),
+                                            "s_scene_selected: ",
+                                            input$s_scene_selected)
+  )
+  )
+
+  ## Setup. ----
+
+  ## Helper Functions. ----
+
+  # Define plot height function to keep facet panels roughly the same height
+  # whether displaying one or two.
+  plot_height <- reactive({
+    ifelse(length(input$d_scene_selected) == 1, 480,
+           ifelse(length(input$d_scene_selected) == 2, 835, "auto"))
+  })
+
+  ## OBSERVERS. ----
+
+  ### Update input choices by plot tab. ----
+  observe({
+    if (input$plot_tabs == "Demand by Water Right Type") {
+      hideElement(id = "no_supply_text")
+      hideElement(id = "s_scene_selected")
+      hideElement(id = "priority_selected")
+      showElement(id = "wrt_selected")
+    }
+    if (input$plot_tabs == "Demand by Priority") {
+      hideElement(id = "no_supply_text")
+      hideElement(id = "s_scene_selected")
+      hideElement(id = "priority_selected")
+      hideElement(id = "wrt_selected")
+    }
+    if (input$plot_tabs == "Supply-Demand Scenarios" &
+        is.null(supply[[input$huc8_selected]])) {
+      showElement(id = "no_supply_text")
+      hideElement(id = "s_scene_selected")
+      showElement(id = "priority_selected")
+      hideElement(id = "wrt_selected")
+    }
+    if (input$plot_tabs == "Supply-Demand Scenarios" &
+        !is.null(supply[[input$huc8_selected]])) {
+      hideElement(id = "no_supply_text")
+      showElement(id = "s_scene_selected")
+      showElement(id = "priority_selected")
+      hideElement(id = "wrt_selected")
+    }
+  })
+
+  ### Update available watersheds when input$supply_filter check box changes. ----
+  observeEvent(input$supply_filter, {
+    if (input$supply_filter) {
+      huc8_choices <- sort(names(demand)[names(demand) %in% names(supply)])
+    } else {
+      huc8_choices <- sort(names(demand))
+    }
+    updateSelectInput(session,
+                      inputId = "huc8_selected",
+                      choices = huc8_choices,
+                      selected = sample(huc8_choices, 1))
+  })
+
+  ### Update demand scenario choices. ----
+  observeEvent(input$huc8_selected, {
+    req(input$huc8_selected)
+    choices <- sort(unique(demand[[input$huc8_selected]]$d_scenario))
+    updateSelectizeInput(session,
+                         inputId = "d_scene_selected",
+                         choices = choices,
+                         selected = "Reported Diversions - 2023")
+  })
+
+  ### Update supply scenario choices. ----
+  observeEvent(input$huc8_selected, {
+    req(input$huc8_selected)
+    if( !is.null(supply[[input$huc8_selected]]) ) {
+      supply_choices <- sort(unique(supply[[input$huc8_selected]]$s_scenario))
+    }else {
+      supply_choices <- character(0)
+    }
+    updateSelectizeInput(session,
+                         inputId = "s_scene_selected",
+                         choices = supply_choices,
+                         selected = "")
+
+  })
+
+  ### Update priority year choices. ----
+  py_choice_list <- reactive({
+    sort(na.omit(unique(demand[[input$huc8_selected]]$p_year)),
+         decreasing = TRUE)
+  })
+  observeEvent(input$huc8_selected, {
+    req(input$huc8_selected)
+    py_choices <- py_choice_list()#[py_choice_list() > min(py_choice_list())]
+    updateSelectInput(session, "priority_selected",
+                      choices = py_choices,
+                      selected = max(py_choices))
+  })
+
+  ### Update water right type choices. ----
+  observeEvent(input$huc8_selected, {
+    choices <- unique(demand[[input$huc8_selected]]$wr_type)
+    updateCheckboxGroupInput(session = session,
+                             inputId = "wrt_selected",
+                             choices = choices,
+                             selected = choices)
+  })
+
+  ## OUTPUTS ----
+
   # ### No supply data alert. ----
   # output$no_supply_text <- renderText({ 
   #   paste0('<font color=\"#FF0000\"><p><b>',
@@ -775,12 +777,12 @@ server <- function(input, output, session) {
 # APP --------------------------------------------------------------------------
 
 # Run in a dialog within R Studio
-# runGadget(ui, server, viewer = dialogViewer(dialogName = "DWR-WASDET DEVELOP", 
-#                                             width = 1600, 
-#                                             height = 1200))
+runGadget(ui, server, viewer = dialogViewer(dialogName = "DWR-WASDET DEVELOP",
+                                            width = 1600,
+                                            height = 1200))
 
-shinyApp(ui = ui,
-         server = server)
+# shinyApp(ui = ui,
+#          server = server)
 
 
 
