@@ -180,12 +180,18 @@ ui <- ui <- page_fillable(
                                                   layout_column_wrap(
                                                     width = 1/2,
                                                     withSpinner(plotOutput(outputId = "dbp_plot")),
-                                                    # leafletOutput(outputId = "dbp_map")
+                                                    # withSpinner(leafletOutput(outputId = "dbp_map"))
                                                   )
                                          ),
                                          
                                          # Level 2: Supply-Demand Scenarios
-                                         tabPanel("Supply-Demand Scenarios", "Supply-Demand Scenarios")
+                                         tabPanel("Supply-Demand Scenarios",
+                                                  
+                                                  layout_column_wrap(
+                                                    width = 1/2,
+                                                    withSpinner(plotOutput(outputId = "vsd_plot")),
+                                                    # withSpinner(leafletOutput(outputId = "vsd_map"))
+                                                  ))
                                          
                         )
                ),
@@ -324,65 +330,65 @@ server <- function(input, output, session) {
     }
   })
   
-  ### Update dbwrt map points and legends. ----
-  observe({
-    leafletProxy(mapId = "dbwrt_map") %>%
-      clearGroup(group = "content") %>%
-      clearControls() %>%
-      addCircleMarkers(group = "content",
-                       data = pod_points(),
-                       radius = 4,
-                       fillOpacity = 0.8,
-                       stroke = FALSE,
-                       weight = 2,
-                       fillColor = ~map_wrt_pal(wr_type),
-                       label = lapply(pod_labs(), HTML)
-      ) %>%
-      addLegend(position = "topright",
-                pal = map_wrt_pal,
-                values = pod_points()$wr_type,
-                title = "Water Right Type",
-                opacity = 1)
-    
-  })
-  
-  ### Update dbp map points and legends. ----
-  observe({
-    leafletProxy(mapId = "dbp_map") %>%
-      clearGroup(group = "content") %>%
-      clearControls() %>%
-      
-      # POD points.
-      addCircleMarkers(group = "content",
-                       data = pod_points,
-                       radius = 4,
-                       fillOpacity = 0.8,
-                       stroke = FALSE,
-                       weight = 2,
-                       fillColor = ~map_demand_pal(vsd_fill_color),
-                       label = lapply(pod_labs(), HTML)) %>%
-      
-      # Gage station markers.
-      addMarkers(group = "content",
-                 data = station_points(),
-                 lat = ~lat,
-                 lng = ~lng,
-                 icon = station_icon,
-                 popup = lapply(station_labs(), HTML)) %>%
-      
-      # Color legend.
-      addLegend(position = "topright",
-                colors = wa_demand_pal[1:3],
-                labels = c(paste(input$priority_selected, "& Junior Post-14 Demand"),
-                           paste(as.numeric(input$priority_selected) -1, "& Senior Post-14 Demand"),
-                           "Statement Demand"),
-                title = "Demand Priority",
-                opacity = 1) %>%
-      
-      # Shape legend.
-      addControl(html = html_legend,
-                 position = "bottomleft")
-  })
+  # ### Update dbwrt map points and legends. ----
+  # observe({
+  #   leafletProxy(mapId = "dbwrt_map") %>%
+  #     clearGroup(group = "content") %>%
+  #     clearControls() %>%
+  #     addCircleMarkers(group = "content",
+  #                      data = pod_points(),
+  #                      radius = 4,
+  #                      fillOpacity = 0.8,
+  #                      stroke = FALSE,
+  #                      weight = 2,
+  #                      fillColor = ~map_wrt_pal(wr_type),
+  #                      label = lapply(pod_labs(), HTML)
+  #     ) %>%
+  #     addLegend(position = "topright",
+  #               pal = map_wrt_pal,
+  #               values = pod_points()$wr_type,
+  #               title = "Water Right Type",
+  #               opacity = 1)
+  #   
+  # })
+  # 
+  # ### Update dbp map points and legends. ----
+  # observe({
+  #   leafletProxy(mapId = "dbp_map") %>%
+  #     clearGroup(group = "content") %>%
+  #     clearControls() %>%
+  #     
+  #     # POD points.
+  #     addCircleMarkers(group = "content",
+  #                      data = pod_points,
+  #                      radius = 4,
+  #                      fillOpacity = 0.8,
+  #                      stroke = FALSE,
+  #                      weight = 2,
+  #                      fillColor = ~map_demand_pal(vsd_fill_color),
+  #                      label = lapply(pod_labs(), HTML)) %>%
+  #     
+  #     # Gage station markers.
+  #     addMarkers(group = "content",
+  #                data = station_points(),
+  #                lat = ~lat,
+  #                lng = ~lng,
+  #                icon = station_icon,
+  #                popup = lapply(station_labs(), HTML)) %>%
+  #     
+  #     # Color legend.
+  #     addLegend(position = "topright",
+  #               colors = wa_demand_pal[1:3],
+  #               labels = c(paste(input$priority_selected, "& Junior Post-14 Demand"),
+  #                          paste(as.numeric(input$priority_selected) -1, "& Senior Post-14 Demand"),
+  #                          "Statement Demand"),
+  #               title = "Demand Priority",
+  #               opacity = 1) %>%
+  #     
+  #     # Shape legend.
+  #     addControl(html = html_legend,
+  #                position = "bottomleft")
+  # })
   
   ### Update available watersheds when input$supply_filter check box changes. ----
   observeEvent(input$supply_filter, {
