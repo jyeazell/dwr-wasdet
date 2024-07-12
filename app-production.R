@@ -943,7 +943,7 @@ server <- function(input, output, session) {
                   opacity = 1)
     } else
       
-      ### vbp plot points. ----
+      ### dbp plot points. ----
     if( input$plot_tabs == "Demand by Priority" ) {
       
       leafletProxy(mapId = "mini_map") %>%

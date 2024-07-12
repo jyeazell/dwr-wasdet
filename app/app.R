@@ -170,7 +170,8 @@ ui <- ui <- page_fillable(
                                                   layout_column_wrap(
                                                     width = 1/2,
                                                     withSpinner(plotOutput(outputId = "dbwrt_plot")),
-                                                  #  withSpinner(leafletOutput(outputId = "dbwrt_map"))
+                                                    withSpinner(leafletOutput(outputId = "dbwrt_map",
+                                                                              height = "500px"))
                                                   )
                                          ),
                                          
@@ -180,7 +181,8 @@ ui <- ui <- page_fillable(
                                                   layout_column_wrap(
                                                     width = 1/2,
                                                     withSpinner(plotOutput(outputId = "dbp_plot")),
-                                                    # withSpinner(leafletOutput(outputId = "dbp_map"))
+                                                    withSpinner(leafletOutput(outputId = "dbp_map",
+                                                                              height = "500px"))
                                                   )
                                          ),
                                          
@@ -190,7 +192,8 @@ ui <- ui <- page_fillable(
                                                   layout_column_wrap(
                                                     width = 1/2,
                                                     withSpinner(plotOutput(outputId = "vsd_plot")),
-                                                    # withSpinner(leafletOutput(outputId = "vsd_map"))
+                                                    withSpinner(leafletOutput(outputId = "vsd_map",
+                                                                              height = "500px"))
                                                   ))
                                          
                         )
@@ -330,67 +333,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # ### Update dbwrt map points and legends. ----
-  # observe({
-  #   leafletProxy(mapId = "dbwrt_map") %>%
-  #     clearGroup(group = "content") %>%
-  #     clearControls() %>%
-  #     addCircleMarkers(group = "content",
-  #                      data = pod_points(),
-  #                      radius = 4,
-  #                      fillOpacity = 0.8,
-  #                      stroke = FALSE,
-  #                      weight = 2,
-  #                      fillColor = ~map_wrt_pal(wr_type),
-  #                      label = lapply(pod_labs(), HTML)
-  #     ) %>%
-  #     addLegend(position = "topright",
-  #               pal = map_wrt_pal,
-  #               values = pod_points()$wr_type,
-  #               title = "Water Right Type",
-  #               opacity = 1)
-  #   
-  # })
-  # 
-  # ### Update dbp map points and legends. ----
-  # observe({
-  #   leafletProxy(mapId = "dbp_map") %>%
-  #     clearGroup(group = "content") %>%
-  #     clearControls() %>%
-  #     
-  #     # POD points.
-  #     addCircleMarkers(group = "content",
-  #                      data = pod_points,
-  #                      radius = 4,
-  #                      fillOpacity = 0.8,
-  #                      stroke = FALSE,
-  #                      weight = 2,
-  #                      fillColor = ~map_demand_pal(vsd_fill_color),
-  #                      label = lapply(pod_labs(), HTML)) %>%
-  #     
-  #     # Gage station markers.
-  #     addMarkers(group = "content",
-  #                data = station_points(),
-  #                lat = ~lat,
-  #                lng = ~lng,
-  #                icon = station_icon,
-  #                popup = lapply(station_labs(), HTML)) %>%
-  #     
-  #     # Color legend.
-  #     addLegend(position = "topright",
-  #               colors = wa_demand_pal[1:3],
-  #               labels = c(paste(input$priority_selected, "& Junior Post-14 Demand"),
-  #                          paste(as.numeric(input$priority_selected) -1, "& Senior Post-14 Demand"),
-  #                          "Statement Demand"),
-  #               title = "Demand Priority",
-  #               opacity = 1) %>%
-  #     
-  #     # Shape legend.
-  #     addControl(html = html_legend,
-  #                position = "bottomleft")
-  # })
-  
-  ### Update available watersheds when input$supply_filter check box changes. ----
+   ### Update available watersheds when input$supply_filter check box changes. ----
   observeEvent(input$supply_filter, {
     if (input$supply_filter) {
       huc8_choices <- sort(names(demand)[names(demand) %in% names(supply)])
@@ -743,117 +686,133 @@ server <- function(input, output, session) {
   }, height = function() plot_height()
   )
   
-  # ## Maps. ----
-  # 
-  # ### Render dbwrt map. ----
-  # output$dbwrt_map <- renderLeaflet({
-  #   
-  #   # Validate.
-  #   validate(
-  #     need(nrow(pod_points()) > 0,
-  #          paste0("No Data Available.\n",
-  #                 "Please select other Watershed(s) or Water Right Type(s)."))
-  #   )
-  #   
-  #   # Render.
-  #   leaflet() %>%
-  #     
-  #     # Add base map.
-  #     addProviderTiles(providers$CartoDB.Positron) %>%
-  #     addPolygons(group = "base",
-  #                 data = plot_poly(),
-  #                 weight = 3,
-  #                 col = "blue",
-  #                 fill = TRUE,
-  #                 fillOpacity = 0)
-  # })
-  # 
-  # ### Render dbp map. ----
-  # output$dbp_map <- renderLeaflet({
-  # 
-  #   # Validate.
-  #   validate(
-  #     need(nrow(pod_points()) > 0,
-  #          paste0("No Data Available.\n",
-  #                 "Please select other Watershed(s) or Water Right Type(s)."))
-  #   )
-  # 
-  #   # Render.
-  #   leaflet() %>%
-  # 
-  #     # Add base map.
-  #     addProviderTiles(providers$CartoDB.Positron) %>%
-  #     addPolygons(group = "base",
-  #                 data = plot_poly(),
-  #                 weight = 3,
-  #                 col = "blue",
-  #                 fill = TRUE,
-  #                 fillOpacity = 0)
-  # })
-  
-  # ### Render vsd map. ----
-  # output$vsd_map <- renderLeaflet({
-  #   
-  #   # Validate.
-  #   validate(
-  #     need(nrow(pod_points()) > 0,
-  #          paste0("No Data Available.\n",
-  #                 "Please select other Watershed(s) or Water Right Type(s)."))
-  #   )
-  #   
-  #   # Render.
-  #   leaflet() %>%
-  #     
-  #     # Add base map.
-  #     addProviderTiles(providers$CartoDB.Positron) %>%
-  #     addPolygons(group = "base",
-  #                 data = plot_poly(),
-  #                 weight = 3,
-  #                 col = "blue",
-  #                 fill = TRUE,
-  #                 fillOpacity = 0)
-  # })
-  
-  # ### Update vsd points and legends. ----
-  # observe({
-  #   leafletProxy(mapId = "vsd_map") %>%
-  #     clearGroup(group = "content") %>%
-  #     clearControls() %>%
-  #     
-  #     # POD points.
-  #     addCircleMarkers(group = "content",
-  #                      data = pod_points,
-  #                      radius = 4,
-  #                      fillOpacity = 0.8,
-  #                      stroke = FALSE,
-  #                      weight = 2,
-  #                      fillColor = ~map_demand_pal(vsd_fill_color),
-  #                      label = lapply(pod_labs(), HTML)) %>%
-  #     
-  #     # Gage station markers.
-  #     addMarkers(group = "content",
-  #                data = station_points(),
-  #                lat = ~lat,
-  #                lng = ~lng,
-  #                icon = station_icon,
-  #                popup = lapply(station_labs(), HTML)) %>%
-  #     
-  #     # Color legend.
-  #     addLegend(position = "topright",
-  #               colors = wa_demand_pal[1:3],
-  #               labels = c(paste(input$priority_selected, "& Junior Post-14 Demand"),
-  #                          paste(as.numeric(input$priority_selected) -1, "& Senior Post-14 Demand"),
-  #                          "Statement Demand"),
-  #               title = "Demand Priority",
-  #               opacity = 1) %>%
-  #     
-  #     # Shape legend.
-  #     addControl(html = html_legend,
-  #                position = "bottomleft")
-  # })
-  
-  
-  
+  ## Maps. ----
+
+  ### Demand By Water Right Type (dbwrt_map). ----
+  output$dbwrt_map <- renderLeaflet({
+
+    # Validate.
+    validate(
+      need(nrow(pod_points()) > 0,
+           paste0("No Data Available.\n",
+                  "Please select other Watershed(s) or Water Right Type(s)."))
+    )
+
+    # Render.
+    leaflet() %>%
+
+      # Add base map.
+      addProviderTiles(providers$CartoDB.Positron) %>%
+      addPolygons(group = "base",
+                  data = plot_poly(),
+                  weight = 3,
+                  col = "blue",
+                  fill = TRUE,
+                  fillOpacity = 0) %>% 
+      addCircleMarkers(group = "content",
+                       data = pod_points(),
+                       radius = 4,
+                       fillOpacity = 0.8,
+                       stroke = FALSE,
+                       weight = 2,
+                       fillColor = ~map_wrt_pal(wr_type),
+                       label = lapply(pod_labs(), HTML)) %>%
+      addLegend(position = "topright",
+                pal = map_wrt_pal,
+                values = pod_points()$wr_type,
+                title = "Water Right Type",
+                opacity = 1)
+  })
+
+  ### Demand By Priority (dbp_map). ----
+  output$dbp_map <- renderLeaflet({
+
+    # Validate.
+    validate(
+      need(nrow(pod_points()) > 0,
+           paste0("No Data Available.\n",
+                  "Please select other Watershed(s) or Water Right Type(s)."))
+    )
+
+    # Render.
+    leaflet() %>%
+
+      # Add base map.
+      addProviderTiles(providers$CartoDB.Positron) %>%
+      addPolygons(group = "base",
+                  data = plot_poly(),
+                  weight = 3,
+                  col = "blue",
+                  fill = TRUE,
+                  fillOpacity = 0) %>% 
+      # POD points.
+      addCircleMarkers(group = "content",
+                       data = pod_points(),
+                       radius = 4,
+                       fillOpacity = 0.8,
+                       stroke = FALSE,
+                       weight = 2,
+                       fillColor = ~map_priority_pal(priority),
+                       label = lapply(pod_labs(), HTML)) %>%
+      
+      # Shape legend.
+      addControl(html = "See plot legend for color categories.",
+                 position = "topright")
+  })
+
+  ### Supply-Demand (vsd-map). ----
+  output$vsd_map <- renderLeaflet({
+
+    # Validate.
+    validate(
+      need(nrow(pod_points()) > 0,
+           paste0("No Data Available.\n",
+                  "Please select other Watershed(s) or Water Right Type(s)."))
+    )
+
+    # Render.
+    leaflet() %>%
+
+      # Add base map.
+      addProviderTiles(providers$CartoDB.Positron) %>%
+      addPolygons(group = "base",
+                  data = plot_poly(),
+                  weight = 3,
+                  col = "blue",
+                  fill = TRUE,
+                  fillOpacity = 0) %>%
+      # POD points.
+      addCircleMarkers(group = "content",
+                       data = pod_points(),
+                       radius = 4,
+                       fillOpacity = 0.8,
+                       stroke = FALSE,
+                       weight = 2,
+                       fillColor = ~map_demand_pal(vsd_fill_color),
+                       label = lapply(pod_labs(), HTML)) %>%
+      
+      # Gage station markers.
+      addMarkers(group = "content",
+                 data = station_points(),
+                 lat = ~lat,
+                 lng = ~lng,
+                 icon = station_icon,
+                 popup = lapply(station_labs(), HTML)) %>%
+      
+      # Color legend.
+      addLegend(position = "topright",
+                colors = wa_demand_pal[1:3],
+                labels = c(paste(input$priority_selected, "& Junior Post-14 Demand"),
+                           paste(as.numeric(input$priority_selected) -1, "& Senior Post-14 Demand"),
+                           "Statement Demand"),
+                title = "Demand Priority",
+                opacity = 1) %>%
+      
+      # Shape legend.
+      addControl(html = html_legend,
+                 position = "bottomleft")
+  })
+
 }
 
 # APP --------------------------------------------------------------------------
