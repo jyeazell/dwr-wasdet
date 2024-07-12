@@ -15,7 +15,7 @@ if (!("package:shinycssloaders" %in% search())) {
 }
 
 develop <- TRUE
-debug_flag <- TRUE
+debug_flag <- FALSE
 
 ## Debug. #####
 if (debug_flag) {
@@ -65,44 +65,29 @@ app_title <- paste("Division of Water Rights",
 if(develop) app_title <- HTML(paste(app_title,
                                     '<font color=\"#FF0000\">--- DEVELOP ---</font>'))
 
-## Cards. ----
-
-# Plot card
-plot_card <- card(
-  card_body(
-    plotOutput(outputId = "dbwrt_plot")
-  )
-)
-
-
-# Mini map card
-minimap_card <- card(
-  card_body(
-    leafletOutput(outputId = "mini_map")
-  )
-)
-
 # UI. -------------------------------------------------------------------------
-ui <- ui <- page_fillable(
+ui <- page_fillable(
   useShinyjs(),
+  
+  gap = 2,
+  
   theme = bs_theme(version = 5,
                    bootswatch = "cosmo"),
   
   titlePanel("Division of Water Rights Water Supply/Demand Visualization Tool"),
   
   # Level 1
-  navset_card_pill( # Start Explore, Data, About pill (LEVEL 1)
+  navset_card_pill( 
     
-    # Level 1: Explore
+    ## Explore tab. ----
     tabPanel("Explore",
              
-             # Level 2
              navset_card_pill(
                
-               ## Sidebar ----
+               ### Sidebar ----
                sidebar = sidebar( # Start Explore sidebar.
                  
-                 ### Select HUC-8 watershed. ----
+                 #### Select HUC-8 watershed. ----
                  selectInput(inputId = "huc8_selected",
                              label = "Select HUC-8 Watershed:",
                              choices = NULL,
@@ -110,13 +95,13 @@ ui <- ui <- page_fillable(
                              multiple = FALSE
                  ),
                  
-                 ### Filter for watersheds with supply information. ----
+                 #### Filter for watersheds with supply information. ----
                  checkboxInput(inputId = "supply_filter",
                                label = "Filter for watersheds with available supply information",
                                value = FALSE
                  ),
                  
-                 ### Select demand scenario(s). ----
+                 #### Select demand scenario(s). ----
                  selectizeInput(inputId = "d_scene_selected",
                                 label = "Select Up To Two Demand Scenarios:",
                                 choices = NULL,
@@ -125,7 +110,7 @@ ui <- ui <- page_fillable(
                                 options = list(maxItems = 2)
                  ),
                  
-                 ### Select supply scenario(s) for vsd_plot. ----
+                 #### Select supply scenario(s) for vsd_plot. ----
                  selectizeInput(inputId = "s_scene_selected",
                                 label = "Select Up To Three Supply Scenarios:",
                                 choices = NULL,
@@ -134,37 +119,36 @@ ui <- ui <- page_fillable(
                                 options = list(maxItems = 3)
                  ),
                  
-                 ### Select priority year to slice for vsd_plot. ----
+                 #### Select priority year to slice for vsd_plot. ----
                  selectInput(inputId = "priority_selected",
                              label = "Select Demand Priority Year:",
                              choices = NULL,
                              selected = NULL,
                              multiple = FALSE),
                  
-                 ### Select water right types to include in dbwrt_plot. ----
+                 #### Select water right types to include in dbwrt_plot. ----
                  checkboxGroupInput(inputId = "wrt_selected",
                                     label = "Select Water Right Type(s) to Display:",
                                     choices = NULL,
                                     selected = NULL),
                  
-                 ### Conditional supply availability text. ----
+                 #### Conditional supply availability text. ----
                  htmlOutput(outputId = "no_supply_text"),
                  
-                 ### Copyright. ----
+                 #### Copyright. ----
                  HTML('<center><img src="waterboards_logo_high_res.jpg", height = "70px"><img src="DWR-ENF-Logo-2048.png", height = "70px"></center>'),
                  HTML(paste("<center>©", year(now()), 
                             "State Water Resources Control Board</center>"))
                  
                ), # End Explore sidebar.
                
-               ## By Watershed ----
+               ### By Watershed tab. ----
                tabPanel("By Watershed",
                         
-                        # Level 2
                         navset_card_pill(id = "plot_tabs",
                                          selected = "Demand by Water Right Type",
                                          
-                                         # Level 2: Demand by Water Right Type
+                                         #### Demand by Water Right Type tab. ----
                                          tabPanel("Demand by Water Right Type", 
                                                   
                                                   layout_column_wrap(
@@ -175,18 +159,20 @@ ui <- ui <- page_fillable(
                                                   )
                                          ),
                                          
-                                         # Level 2: Demand by Priority
+                                         #### Demand by Priority tab. ----
                                          tabPanel("Demand by Priority",
                                                   
                                                   layout_column_wrap(
                                                     width = 1/2,
+                                                    
                                                     withSpinner(plotOutput(outputId = "dbp_plot")),
+                                                    
                                                     withSpinner(leafletOutput(outputId = "dbp_map",
                                                                               height = "500px"))
                                                   )
                                          ),
                                          
-                                         # Level 2: Supply-Demand Scenarios
+                                         #### Supply-Demand Scenarios tab. ----
                                          tabPanel("Supply-Demand Scenarios",
                                                   
                                                   layout_column_wrap(
@@ -199,23 +185,27 @@ ui <- ui <- page_fillable(
                         )
                ),
                
-               # Level 1: By Water Right
+               ### By Water Right tab. ----
                tabPanel("By Water Right", "By Water Right"),
                
-               # Level 1: Data
-               tabPanel("Data", "Data"),
+               ### Data tab. ----
+               tabPanel("Data",
+                      #  br(),
+                        h3("Selected Demand Data"),
+                        DTOutput(outputId = "demand_data_table")
+               ),
                
-               # Level 1: California Watershed Map
+               ### California Watershed Map tab. ----
                tabPanel("California Watershed Map", "California Watershed Map")
              )
     ),
     
-    # Level 0: Dataset Information
+    ## Dataset Information tab. ----
     tabPanel("Dataset Information", "Dataset Information"
              
     ),
     
-    # Level 0: About/Help
+    ## About/Help tab. ----
     tabPanel("About/Help", "About/Help"
              
     )
@@ -333,7 +323,7 @@ server <- function(input, output, session) {
     }
   })
   
-   ### Update available watersheds when input$supply_filter check box changes. ----
+  ### Update available watersheds when input$supply_filter check box changes. ----
   observeEvent(input$supply_filter, {
     if (input$supply_filter) {
       huc8_choices <- sort(names(demand)[names(demand) %in% names(supply)])
@@ -501,7 +491,7 @@ server <- function(input, output, session) {
            "No data to plot.\nPlease select a Watershed."),
       need(input$d_scene_selected,
            "No data to plot.\nPlease select at least one Demand Scenario."),
-      )
+    )
     
     # Render.
     ggplot(data = dbp_plot_data(),
@@ -687,20 +677,20 @@ server <- function(input, output, session) {
   )
   
   ## Maps. ----
-
+  
   ### Demand By Water Right Type (dbwrt_map). ----
   output$dbwrt_map <- renderLeaflet({
-
+    
     # Validate.
     validate(
       need(nrow(pod_points()) > 0,
            paste0("No Data Available.\n",
                   "Please select other Watershed(s) or Water Right Type(s)."))
     )
-
+    
     # Render.
     leaflet() %>%
-
+      
       # Add base map.
       addProviderTiles(providers$CartoDB.Positron) %>%
       addPolygons(group = "base",
@@ -723,20 +713,20 @@ server <- function(input, output, session) {
                 title = "Water Right Type",
                 opacity = 1)
   })
-
+  
   ### Demand By Priority (dbp_map). ----
   output$dbp_map <- renderLeaflet({
-
+    
     # Validate.
     validate(
       need(nrow(pod_points()) > 0,
            paste0("No Data Available.\n",
                   "Please select other Watershed(s) or Water Right Type(s)."))
     )
-
+    
     # Render.
     leaflet() %>%
-
+      
       # Add base map.
       addProviderTiles(providers$CartoDB.Positron) %>%
       addPolygons(group = "base",
@@ -759,20 +749,20 @@ server <- function(input, output, session) {
       addControl(html = "See plot legend for color categories.",
                  position = "topright")
   })
-
+  
   ### Supply-Demand (vsd-map). ----
   output$vsd_map <- renderLeaflet({
-
+    
     # Validate.
     validate(
       need(nrow(pod_points()) > 0,
            paste0("No Data Available.\n",
                   "Please select other Watershed(s) or Water Right Type(s)."))
     )
-
+    
     # Render.
     leaflet() %>%
-
+      
       # Add base map.
       addProviderTiles(providers$CartoDB.Positron) %>%
       addPolygons(group = "base",
@@ -812,8 +802,23 @@ server <- function(input, output, session) {
       addControl(html = html_legend,
                  position = "bottomleft")
   })
-
-}
+  
+  ## Tables. ----
+  
+  ## Demand data table.
+  output$demand_data_table <- renderDataTable({
+    demand[[input$huc8_selected]] %>% 
+      filter(d_scenario %in% input$d_scene_selected,
+             wr_type %in% input$wrt_selected) %>% 
+      mutate(plot_date = as.integer(month(plot_date))) %>% 
+      rename(month = plot_date) %>% 
+      select(-p_year)
+  },
+  filter = "top",
+  rownames = FALSE)
+  
+  
+} # End server.
 
 # APP --------------------------------------------------------------------------
 
