@@ -15,7 +15,7 @@ if (!("package:shinycssloaders" %in% search())) {
 }
 
 develop <- TRUE
-debug_flag <- FALSE
+debug_flag <- TRUE
 
 ## Debug. #####
 if (debug_flag) {
@@ -190,9 +190,9 @@ ui <- page_fillable(
                
                ### Data tab. ----
                tabPanel("Data",
-                      #  br(),
+                        #  br(),
                         h3("Selected Demand Data"),
-                        DTOutput(outputId = "demand_data_table")
+                        DTOutput(outputId = "demand_table")
                ),
                
                ### California Watershed Map tab. ----
@@ -805,17 +805,43 @@ server <- function(input, output, session) {
   
   ## Tables. ----
   
-  ## Demand data table.
-  output$demand_data_table <- renderDataTable({
-    demand[[input$huc8_selected]] %>% 
-      filter(d_scenario %in% input$d_scene_selected,
-             wr_type %in% input$wrt_selected) %>% 
-      mutate(plot_date = as.integer(month(plot_date))) %>% 
-      rename(month = plot_date) %>% 
+  demand_table <- reactive({
+    req(input$huc8_selected)
+    demand[[input$huc8_selected]] %>%
+      filter(d_scenario %in% input$d_scene_selected) %>% #,
+       #      wr_type %in% input$wrt_selected) %>%
+      mutate(plot_date = as.integer(month(plot_date))) %>%
+      rename(month = plot_date) %>%
       select(-p_year)
-  },
-  filter = "top",
-  rownames = FALSE)
+  })
+  
+  ## Demand data table.
+  output$demand_table <- renderDataTable({
+    
+    # Validate.
+    validate(
+      need(nrow(demand_table()) > 0,
+           paste0("No Data Available.\n",
+                  "Please select other Watershed(s) or Water Right Type(s)."))
+    )
+    
+    # Render.
+    datatable(demand_table(),
+              # options = list(
+              #   pageLength = 10,
+              #   lengthMenu = c(10, 25, 50),
+              #   autoWidth = TRUE,
+              #   searching = FALSE,
+              #   ordering = FALSE,
+              #   info = FALSE,
+              #   paging = FALSE,
+              #   scrollX = TRUE,
+              #   scrollY = "400px",
+              #   fixedColumns = TRUE,
+              #   fixedColumns = list(leftColumns = 1)
+              filter = "top",
+              rownames = FALSE)
+  })
   
   
 } # End server.
