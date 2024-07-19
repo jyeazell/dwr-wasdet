@@ -69,7 +69,7 @@ if(develop) app_title <- HTML(paste(app_title,
 ui <- page_fillable(
   useShinyjs(),
   
-  gap = 2,
+  gap = 1,
   
   theme = bs_theme(version = 5,
                    bootswatch = "cosmo"),
@@ -83,6 +83,7 @@ ui <- page_fillable(
     tabPanel("Explore",
              
              navset_card_pill(
+               selected = "By Watershed",
                
                ### Sidebar ----
                sidebar = sidebar( # Start Explore sidebar.
@@ -198,17 +199,39 @@ ui <- page_fillable(
                ### California Watershed Map tab. ----
                tabPanel("California Watershed Map", "California Watershed Map")
              )
-    ),
+    ), # End Explore tab.
     
     ## Dataset Information tab. ----
-    tabPanel("Dataset Information", "Dataset Information"
-             
-    ),
+    tabPanel(title = "Dataset Information",
+             icon = icon("table"), 
+
+             navset_card_pill(
+              # selected = "Demand Scenarios",
+
+               #### Demand Scenarios. ----
+               tabPanel("Demand Scenarios",
+                        icon = icon("faucet"),
+                        includeHTML("./docs/demand-scenarios.html")),
+
+               #### Supply Scenarios. ----
+               tabPanel("Supply Scenarios",
+                        icon = icon("water"),
+                        "Supply Scenarios", br(),
+                        "Content Goes Here"),
+
+               #### Other Data. ----
+               tabPanel("Other Data",
+                        icon = icon("table"),
+                        "Other Data", br(),
+                        "Content Goes Here")
+
+             )
+    ), # End Dataset Information tab.
     
     ## About/Help tab. ----
     tabPanel("About/Help", "About/Help"
              
-    )
+    ) # End About/Help tab.
   )
 )
 
@@ -808,8 +831,8 @@ server <- function(input, output, session) {
   demand_table <- reactive({
     req(input$huc8_selected)
     demand[[input$huc8_selected]] %>%
-      filter(d_scenario %in% input$d_scene_selected) %>% #,
-       #      wr_type %in% input$wrt_selected) %>%
+      filter(d_scenario %in% input$d_scene_selected,
+             wr_type %in% input$wrt_selected) %>%
       mutate(plot_date = as.integer(month(plot_date))) %>%
       rename(month = plot_date) %>%
       select(-p_year)
@@ -821,8 +844,7 @@ server <- function(input, output, session) {
     # Validate.
     validate(
       need(nrow(demand_table()) > 0,
-           paste0("No Data Available.\n",
-                  "Please select other Watershed(s) or Water Right Type(s)."))
+           "No Data Available.")
     )
     
     # Render.
