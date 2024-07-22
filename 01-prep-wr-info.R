@@ -32,22 +32,12 @@ if(!("package:aws.s3" %in% search())) {
 # Initialization. ----
 
 ## Switches. ----
-write_data <- FALSE
+write_data <- TRUE
+save_to_aws <- FALSE
 download_new_wrinfo <- TRUE
 download_new_pods <- TRUE
 save_data_gaps <- TRUE
 report_multi_hucs <- TRUE
-
-## Load S3 keys. ----
-Sys.setenv("AWS_ACCESS_KEY_ID" = scan("app/s3-keys.txt",
-                                      what = "character",
-                                      quiet = TRUE)[1],
-           "AWS_SECRET_ACCESS_KEY" = scan("app/s3-keys.txt",
-                                          what = "character",
-                                          quiet = TRUE)[2],
-           "AWS_DEFAULT_REGION" = scan("app/s3-keys.txt",
-                                       what = "character",
-                                       quiet = TRUE)[3])
 
 ## Create project folders if they don't exist.  <-- purrr this! ----
 
@@ -354,10 +344,11 @@ if(write_data) {
        wr_type_list,
        wrinfo_create_date,
        file = "./output/wasdet-wrinfo.RData")
-  
-  # Write data to S3 bucket.
-  # put_object(file = "./output/wasdet-wrinfo.RData", 
-  #            object = "wasdet-wrinfo.RData", 
-  #            bucket = "dwr-shiny-apps",
-  #            multipart = TRUE)
 }
+
+  if(save_to_aws) {
+    # Write data to S3 bucket.
+    put_object(file = "./output/wasdet-wrinfo.RData", 
+               object = "wasdet-wrinfo.RData", 
+               bucket = "dwr-shiny")
+  }

@@ -14,8 +14,8 @@ if (!("package:shinycssloaders" %in% search())) {
   suppressMessages(library(shinycssloaders))
 }
 
-develop <- TRUE
-debug_flag <- TRUE
+develop <- FALSE
+debug_flag <- FALSE
 
 ## Debug. #####
 if (debug_flag) {
@@ -362,7 +362,8 @@ server <- function(input, output, session) {
   ### Update demand scenario choices. ----
   observeEvent(input$huc8_selected, {
     req(input$huc8_selected)
-    choices <- sort(unique(demand[[input$huc8_selected]]$d_scenario))
+    choices <- sort(unique(demand[[input$huc8_selected]]$d_scenario),
+                    decreasing = TRUE)
     updateSelectizeInput(session,
                          inputId = "d_scene_selected",
                          choices = choices,
