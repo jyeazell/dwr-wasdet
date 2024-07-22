@@ -14,7 +14,7 @@ if (!("package:shinycssloaders" %in% search())) {
   suppressMessages(library(shinycssloaders))
 }
 
-develop <- FALSE
+develop <- TRUE
 debug_flag <- FALSE
 
 ## Debug. #####
