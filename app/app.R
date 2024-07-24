@@ -4,6 +4,9 @@
 if (!("package:shiny" %in% search())) {
   suppressMessages(library(shiny))
 }
+# if (!("package:shinydashboard" %in% search())) {
+#   suppressMessages(library(shinydashboard))
+# }
 if (!("package:bslib" %in% search())) {
   suppressMessages(library(bslib))
 }
@@ -15,7 +18,7 @@ if (!("package:shinycssloaders" %in% search())) {
 }
 
 develop <- TRUE
-debug_flag <- FALSE
+debug_flag <- TRUE
 
 ## Debug. #####
 if (debug_flag) {
@@ -69,169 +72,186 @@ if(develop) app_title <- HTML(paste(app_title,
 ui <- page_fillable(
   useShinyjs(),
   
-  gap = 1,
+  ## CSS tags. ----
+  tags$head(
+    tags$style(HTML("
+      
+      .main_menu_theme {
+     
+    
+      
+      text-align: left;
+      }
+                    ")
+    )
+  ),
   
   theme = bs_theme(version = 5,
                    bootswatch = "cosmo"),
   
   titlePanel("Division of Water Rights Water Supply/Demand Visualization Tool"),
   
-  # Level 1
-  navset_card_pill( 
-    
-    ## Explore tab. ----
-    tabPanel("Explore",
+  tags$div(class = 'main_menu_theme',
+           navset_card_pill( 
              
-             navset_card_pill(
-               selected = "By Watershed",
-               
-               ### Sidebar ----
-               sidebar = sidebar( # Start Explore sidebar.
-                 
-                 #### Select HUC-8 watershed. ----
-                 selectInput(inputId = "huc8_selected",
-                             label = "Select HUC-8 Watershed:",
-                             choices = NULL,
-                             selected = NULL,
-                             multiple = FALSE
-                 ),
-                 
-                 #### Filter for watersheds with supply information. ----
-                 checkboxInput(inputId = "supply_filter",
-                               label = "Filter for watersheds with available supply information",
-                               value = FALSE
-                 ),
-                 
-                 #### Select demand scenario(s). ----
-                 selectizeInput(inputId = "d_scene_selected",
-                                label = "Select Up To Two Demand Scenarios:",
-                                choices = NULL,
-                                selected = NULL,
-                                multiple = TRUE,
-                                options = list(maxItems = 2)
-                 ),
-                 
-                 #### Select supply scenario(s) for vsd_plot. ----
-                 selectizeInput(inputId = "s_scene_selected",
-                                label = "Select Up To Three Supply Scenarios:",
-                                choices = NULL,
-                                selected = NULL,
-                                multiple = TRUE,
-                                options = list(maxItems = 3)
-                 ),
-                 
-                 #### Select priority year to slice for vsd_plot. ----
-                 selectInput(inputId = "priority_selected",
-                             label = "Select Demand Priority Year:",
-                             choices = NULL,
-                             selected = NULL,
-                             multiple = FALSE),
-                 
-                 #### Select water right types to include in dbwrt_plot. ----
-                 checkboxGroupInput(inputId = "wrt_selected",
-                                    label = "Select Water Right Type(s) to Display:",
-                                    choices = NULL,
-                                    selected = NULL),
-                 
-                 #### Conditional supply availability text. ----
-                 htmlOutput(outputId = "no_supply_text"),
-                 
-                 #### Copyright. ----
-                 HTML('<center><img src="waterboards_logo_high_res.jpg", height = "70px"><img src="DWR-ENF-Logo-2048.png", height = "70px"></center>'),
-                 HTML(paste("<center>©", year(now()), 
-                            "State Water Resources Control Board</center>"))
-                 
-               ), # End Explore sidebar.
-               
-               ### By Watershed tab. ----
-               tabPanel("By Watershed",
+             ## Explore tab. ----
+             tabPanel("Explore",
+                      
+                      navset_card_pill(
+                        selected = "By Watershed",
                         
-                        navset_card_pill(id = "plot_tabs",
-                                         selected = "Demand by Water Right Type",
-                                         
-                                         #### Demand by Water Right Type tab. ----
-                                         tabPanel("Demand by Water Right Type", 
+                        ### Sidebar ----
+                        sidebar = sidebar( # Start Explore sidebar.
+                          
+                          #### Select HUC-8 watershed. ----
+                          selectInput(inputId = "huc8_selected",
+                                      label = "Select HUC-8 Watershed:",
+                                      choices = NULL,
+                                      selected = NULL,
+                                      multiple = FALSE
+                          ),
+                          
+                          #### Filter for watersheds with supply information. ----
+                          checkboxInput(inputId = "supply_filter",
+                                        label = "Filter for watersheds with available supply information",
+                                        value = FALSE
+                          ),
+                          
+                          #### Select demand scenario(s). ----
+                          selectizeInput(inputId = "d_scene_selected",
+                                         label = "Select Up To Two Demand Scenarios:",
+                                         choices = NULL,
+                                         selected = NULL,
+                                         multiple = TRUE,
+                                         options = list(maxItems = 2)
+                          ),
+                          
+                          #### Select supply scenario(s) for vsd_plot. ----
+                          selectizeInput(inputId = "s_scene_selected",
+                                         label = "Select Up To Three Supply Scenarios:",
+                                         choices = NULL,
+                                         selected = NULL,
+                                         multiple = TRUE,
+                                         options = list(maxItems = 3)
+                          ),
+                          
+                          #### Select priority year to slice for vsd_plot. ----
+                          selectInput(inputId = "priority_selected",
+                                      label = "Select Demand Priority Year:",
+                                      choices = NULL,
+                                      selected = NULL,
+                                      multiple = FALSE),
+                          
+                          #### Select water right types to include in dbwrt_plot. ----
+                          checkboxGroupInput(inputId = "wrt_selected",
+                                             label = "Select Water Right Type(s) to Display:",
+                                             choices = NULL,
+                                             selected = NULL),
+                          
+                          #### Conditional supply availability text. ----
+                          htmlOutput(outputId = "no_supply_text"),
+                          
+                          #### Copyright. ----
+                          HTML('<center><img src="waterboards_logo_high_res.jpg", height = "70px"><img src="DWR-ENF-Logo-2048.png", height = "70px"></center>'),
+                          HTML(paste("<center>©", year(now()), 
+                                     "State Water Resources Control Board</center>"))
+                          
+                        ), # End Explore sidebar.
+                        
+                        ### By Watershed tab. ----
+                        tabPanel("By Watershed",
+                                 
+                                 navset_card_pill(id = "plot_tabs",
+                                                  selected = "Demand by Water Right Type",
                                                   
-                                                  layout_column_wrap(
-                                                    width = 1/2,
-                                                    withSpinner(plotOutput(outputId = "dbwrt_plot")),
-                                                    withSpinner(leafletOutput(outputId = "dbwrt_map",
-                                                                              height = "500px"))
-                                                  )
-                                         ),
-                                         
-                                         #### Demand by Priority tab. ----
-                                         tabPanel("Demand by Priority",
+                                                  #### Demand by Water Right Type tab. ----
+                                                  tabPanel("Demand by Water Right Type", 
+                                                           
+                                                           layout_column_wrap(
+                                                             width = 1/2,
+                                                             withSpinner(plotOutput(outputId = "dbwrt_plot")),
+                                                             withSpinner(leafletOutput(outputId = "dbwrt_map",
+                                                                                       height = "500px"))
+                                                           )
+                                                  ),
                                                   
-                                                  layout_column_wrap(
-                                                    width = 1/2,
-                                                    
-                                                    withSpinner(plotOutput(outputId = "dbp_plot")),
-                                                    
-                                                    withSpinner(leafletOutput(outputId = "dbp_map",
-                                                                              height = "500px"))
-                                                  )
-                                         ),
-                                         
-                                         #### Supply-Demand Scenarios tab. ----
-                                         tabPanel("Supply-Demand Scenarios",
+                                                  #### Demand by Priority tab. ----
+                                                  tabPanel("Demand by Priority",
+                                                           
+                                                           layout_column_wrap(
+                                                             width = 1/2,
+                                                             
+                                                             withSpinner(plotOutput(outputId = "dbp_plot")),
+                                                             
+                                                             withSpinner(leafletOutput(outputId = "dbp_map",
+                                                                                       height = "500px"))
+                                                           )
+                                                  ),
                                                   
-                                                  layout_column_wrap(
-                                                    width = 1/2,
-                                                    withSpinner(plotOutput(outputId = "vsd_plot")),
-                                                    withSpinner(leafletOutput(outputId = "vsd_map",
-                                                                              height = "500px"))
-                                                  ))
-                                         
-                        )
-               ),
-               
-               ### By Water Right tab. ----
-               tabPanel("By Water Right", "By Water Right"),
-               
-               ### Data tab. ----
-               tabPanel("Data",
-                        #  br(),
-                        h3("Selected Demand Data"),
-                        DTOutput(outputId = "demand_table")
-               ),
-               
-               ### California Watershed Map tab. ----
-               tabPanel("California Watershed Map", "California Watershed Map")
-             )
-    ), # End Explore tab.
-    
-    ## Dataset Information tab. ----
-    tabPanel(title = "Dataset Information",
-             icon = icon("table"), 
-
-             navset_card_pill(
-              # selected = "Demand Scenarios",
-
-               #### Demand Scenarios. ----
-               tabPanel("Demand Scenarios",
-                        icon = icon("faucet"),
-                        includeHTML("./docs/demand-scenarios.html")),
-
-               #### Supply Scenarios. ----
-               tabPanel("Supply Scenarios",
-                        icon = icon("water"),
-                        "Supply Scenarios", br(),
-                        "Content Goes Here"),
-
-               #### Other Data. ----
-               tabPanel("Other Data",
-                        icon = icon("table"),
-                        "Other Data", br(),
-                        "Content Goes Here")
-
-             )
-    ), # End Dataset Information tab.
-    
-    ## About/Help tab. ----
-    tabPanel("About/Help", "About/Help"
+                                                  #### Supply-Demand Scenarios tab. ----
+                                                  tabPanel("Supply-Demand Scenarios",
+                                                           
+                                                           layout_column_wrap(
+                                                             width = 1/2,
+                                                             withSpinner(plotOutput(outputId = "vsd_plot")),
+                                                             withSpinner(leafletOutput(outputId = "vsd_map",
+                                                                                       height = "500px"))
+                                                           ))
+                                                  
+                                 )
+                        ),
+                        
+                        ### By Water Right tab. ----
+                        tabPanel("By Water Right", "By Water Right"),
+                        
+                        ### Data Table tab. ----
+                        tabPanel("Data",
+                                 h3("Selected Demand Data"),
+                                 #### Save data button. ----
+                                 actionButton(inputId = "saveBtn",
+                                              label = "Save", 
+                                              width = "100px"),
+                                 DTOutput(outputId = "demand_table")
+                                 
+                        ),
+                        
+                        ### California Watershed Map tab. ----
+                        tabPanel("California Watershed Map", "California Watershed Map")
+                      )
+             ), # End Explore tab.
              
-    ) # End About/Help tab.
+             ## Dataset Information tab. ----
+             tabPanel(title = "Dataset Information",
+                      icon = icon("table"), 
+                      
+                      navset_card_pill(
+                        # selected = "Demand Scenarios",
+                        
+                        #### Demand Scenarios. ----
+                        tabPanel("Demand Scenarios",
+                                 icon = icon("faucet"),
+                                 includeHTML("./docs/demand-scenarios.html")),
+                        
+                        #### Supply Scenarios. ----
+                        tabPanel("Supply Scenarios",
+                                 icon = icon("water"),
+                                 "Supply Scenarios", br(),
+                                 "Content Goes Here"),
+                        
+                        #### Other Data. ----
+                        tabPanel("Other Data",
+                                 icon = icon("table"),
+                                 "Other Data", br(),
+                                 "Content Goes Here")
+                        
+                      )
+             ), # End Dataset Information tab.
+             
+             ## About/Help tab. ----
+             tabPanel("About/Help", "About/Help"
+                      
+             ) # End About/Help tab.
+           )
   )
 )
 
@@ -257,8 +277,8 @@ server <- function(input, output, session) {
   # Define plot height function to keep facet panels roughly the same height
   # whether displaying one or two.
   plot_height <- reactive({
-    ifelse(length(input$d_scene_selected) == 1, 480,
-           ifelse(length(input$d_scene_selected) == 2, 835, "auto"))
+    ifelse(length(input$d_scene_selected) == 1, 400,
+           ifelse(length(input$d_scene_selected) == 2, 500, "auto"))
   })
   
   ## REACTIVES. ----
@@ -348,6 +368,7 @@ server <- function(input, output, session) {
   
   ### Update available watersheds when input$supply_filter check box changes. ----
   observeEvent(input$supply_filter, {
+    # req(input$supply_filter)
     if (input$supply_filter) {
       huc8_choices <- sort(names(demand)[names(demand) %in% names(supply)])
     } else {
@@ -408,7 +429,7 @@ server <- function(input, output, session) {
                              selected = choices)
   })
   
-  ## OUTPUTS. ----
+   ## OUTPUTS. ----
   
   ### No supply data alert. ----
   output$no_supply_text <- renderText({
@@ -864,6 +885,19 @@ server <- function(input, output, session) {
               #   fixedColumns = list(leftColumns = 1)
               filter = "top",
               rownames = FALSE)
+  })
+  
+  ### Save datafile. ----
+  observeEvent(input$saveBtn,{
+    cat("\n\n* Saving table in directory: ", getwd())
+    file_name <- 'test.csv'
+    curr_dt_time <- as.character(Sys.time())
+    curr_dt_time <- gsub(":", "_", curr_dt_time  )
+    
+    write.csv(demand_table(), paste0(file_name,"_last_save_",curr_dt_time,".csv"),
+              row.names = FALSE
+    )
+    
   })
   
   
