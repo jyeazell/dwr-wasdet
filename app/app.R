@@ -1,9 +1,9 @@
 # Set Up. ----------------------------------------------------------------------
 
 ## Load Shiny libraries.
-if (!("package:shiny" %in% search())) {
-  suppressMessages(library(shiny))
-}
+# if (!("package:shiny" %in% search())) {
+#   suppressMessages(library(shiny))
+# }
 if (!("package:bslib" %in% search())) {
   suppressMessages(library(bslib))
 }
@@ -14,7 +14,7 @@ if (!("package:shinycssloaders" %in% search())) {
   suppressMessages(library(shinycssloaders))
 }
 
-develop <- TRUE
+develop <- FALSE
 debug_flag <- FALSE
 
 ## Debug. #####
@@ -29,7 +29,7 @@ if (debug_flag) {
 ## Initialization. ----
 
 ### Load libraries. ----
-source("m-load-libraries.R")
+source("m-load-libraries.R", local = TRUE)
 
 ### Load data files. ----
 source("m-load-prep.R", local = TRUE)
