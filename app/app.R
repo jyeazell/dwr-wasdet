@@ -204,32 +204,61 @@ ui <- page_fillable(
     ## Dataset Information tab. ----
     tabPanel(title = "Dataset Information",
              icon = icon("table"), 
-
+             
              navset_card_pill(
-              # selected = "Demand Scenarios",
-
+               # selected = "Demand Scenarios",
+               
                #### Demand Scenarios. ----
                tabPanel("Demand Scenarios",
                         icon = icon("faucet"),
                         includeHTML("./docs/demand-scenarios.html")),
-
+               
                #### Supply Scenarios. ----
                tabPanel("Supply Scenarios",
                         icon = icon("water"),
                         "Supply Scenarios", br(),
                         "Content Goes Here"),
-
+               
                #### Other Data. ----
                tabPanel("Other Data",
                         icon = icon("table"),
                         "Other Data", br(),
                         "Content Goes Here")
-
+               
              )
     ), # End Dataset Information tab.
     
     ## About/Help tab. ----
-    tabPanel("About/Help", "About/Help"
+    tabPanel("About/Help",
+             icon = icon("info-circle"),
+             
+             navset_card_pill(
+               
+               #### About menu. ----
+               tabPanel("About",
+                        icon = icon("info-circle"),
+                        includeMarkdown("./docs/ABOUT.md")
+               ),
+               
+               #### How to Use the Filters menu. ----
+               tabPanel("How To Use The Filters",
+                        icon = icon("life-ring"),
+                        "How To Use The Filters", br(),
+                        "Content Goes Here"
+               ),
+               
+               #### FAQ menu. ----
+               tabPanel("Frequently Asked Questions",
+                        icon = icon("question"),
+                        includeHTML(("./docs/faq.html"))
+               ),
+               
+               #### Report Bugs menu. ----
+               tabPanel("Report Bugs/Data Issues",
+                        icon = icon("bug"),
+                        includeHTML(("./docs/bugs-issues.html"))
+               )
+             )
              
     ) # End About/Help tab.
   )
