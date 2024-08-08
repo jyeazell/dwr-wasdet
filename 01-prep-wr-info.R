@@ -350,5 +350,5 @@ if(write_data) {
     # Write data to S3 bucket.
     put_object(file = "./output/wasdet-wrinfo.RData", 
                object = "wasdet-wrinfo.RData", 
-               bucket = "dwr-shiny")
+               bucket = "dwr-shiny-apps")
   }
