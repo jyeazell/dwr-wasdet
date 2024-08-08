@@ -33,9 +33,6 @@ if(!("package:aws.s3" %in% search())) {
 
 plot_year <- 2020
 
-## Load S3 keys. ----
-source("load-s3-keys.R")
-
 ## Load and process historical flow statistics data.
 
 # Load data.

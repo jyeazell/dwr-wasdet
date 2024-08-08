@@ -13,14 +13,11 @@ library(aws.s3)
 ## Switches. ----
 write_data <- TRUE
 save_to_aws <- TRUE
-download_divs <- FALSE
+download_divs <- TRUE
 save_test_set <- TRUE
 
 # set up parallel R sessions.
 plan(multisession)
-
-# ## Load S3 keys. ----
-# source("load-s3-keys.R")
 
 # Load functions.
 if(download_divs) source("f_getReportedDivs_FF.R")
