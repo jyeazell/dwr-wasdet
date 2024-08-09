@@ -10,7 +10,7 @@ The Reported Diversion datasets contain the monthly amounts diverted as reported
 
 | Demand Scenario            | Reporting Year | Available Watersheds | Overall Reporting Compliance Rate | Data Source |
 |--------------|--------------|--------------|-----------------|--------------|
-| Reported Diversions - 2023 | 2023           | All                  | 71%                               | eWRIMS      |
+| Reported Diversions - 2023 | 2023           | All                  | 72%                               | eWRIMS      |
 | Reported Diversions - 2022 | 2022           | All                  | 75%                               | eWRIMS      |
 | Reported Diversions - 2021 | 2021           | All                  | 77%                               | eWRIMS      |
 | Reported Diversions - 2020 | 2020           | All                  | 79%                               | eWRIMS      |
