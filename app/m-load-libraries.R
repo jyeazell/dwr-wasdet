@@ -23,9 +23,6 @@ if (!("package:tidyr" %in% search())) {
 if (!("package:dplyr" %in% search())) {
   suppressMessages(library(dplyr))
 }
-# if (!("package:spdplyr" %in% search())) {
-#   suppressMessages(library(spdplyr))
-# }
 if (!("package:readr" %in% search())) {
   suppressMessages(library(readr))
 }
@@ -37,4 +34,7 @@ if (!("package:scales" %in% search())) {
 }
 if (!("package:DT" %in% search())) {
   suppressMessages(library(DT))
+}
+if (!("package:markdown" %in% search())) {
+  suppressMessages(library(markdown))
 }
