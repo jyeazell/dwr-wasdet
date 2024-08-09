@@ -156,7 +156,7 @@ ui <- page_fillable(
                                                     width = 1/2,
                                                     withSpinner(plotOutput(outputId = "dbwrt_plot")),
                                                     withSpinner(leafletOutput(outputId = "dbwrt_map",
-                                                                              height = "500px"))
+                                                                              height = "70vh"))
                                                   )
                                          ),
                                          
@@ -169,7 +169,7 @@ ui <- page_fillable(
                                                     withSpinner(plotOutput(outputId = "dbp_plot")),
                                                     
                                                     withSpinner(leafletOutput(outputId = "dbp_map",
-                                                                              height = "500px"))
+                                                                              height = "70vh"))
                                                   )
                                          ),
                                          
@@ -180,7 +180,7 @@ ui <- page_fillable(
                                                     width = 1/2,
                                                     withSpinner(plotOutput(outputId = "vsd_plot")),
                                                     withSpinner(leafletOutput(outputId = "vsd_map",
-                                                                              height = "500px"))
+                                                                              height = "70vh"))
                                                   ))
                                          
                         )
@@ -745,7 +745,7 @@ server <- function(input, output, session) {
     leaflet() %>%
       
       # Add base map.
-      addProviderTiles(providers$CartoDB.Positron) %>%
+      addProviderTiles(providers$Esri.WorldTopoMap) %>%
       addPolygons(group = "base",
                   data = plot_poly(),
                   weight = 3,
