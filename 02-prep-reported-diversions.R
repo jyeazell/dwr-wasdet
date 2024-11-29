@@ -11,27 +11,25 @@ library(aws.s3)
 # Initialization. ----
 
 ## Switches. ----
-write_data <- FALSE
+write_data <- TRUE
+save_to_aws <- TRUE
 download_divs <- FALSE
 save_test_set <- TRUE
 
 # set up parallel R sessions.
 plan(multisession)
 
-# Set plot year.
-plot_year <- 2020
-
-## Load S3 keys. ----
-source("./app/load-s3-keys.R")
+# ## Load S3 keys. ----
+# source("load-s3-keys.R")
 
 # Load functions.
 if(download_divs) source("f_getReportedDivs_FF.R")
 
 # Define variables.
 
-priority_order <- c(c(plot_year:1914),  
-                    "Statement Demand", 
-                    "Environmental Demand")
+# priority_order <- c(c(plot_year:1914),  
+#                     "Statement Demand", 
+#                     "Environmental Demand")
 
 # Load wr_info data.
 load("./output/wasdet-wrinfo.RData")
@@ -45,17 +43,59 @@ if(download_divs) {
   divs_fname <- rownames(div_data_files)[which.max(div_data_files$mtime)]
 }
 
-# Load diversion data, filter for reporting years 2011 on.
-diversions_raw <- read_csv(divs_fname)
+# Load diversion data, filter for reporting years 2009 on.
+diversions_raw <- read_csv(divs_fname) %>% clean_names()
 
-diversions <- diversions_raw %>% clean_names() %>% 
+# Set plot year.
+plot_year <- max(diversions_raw$year)
+
+# Fix water year reporting bug so that data is in correct time-series format. ----
+# Repair data.
+fixData <- function(x) {
+  
+  # WY 2022 data:
+  # Extract Oct, Nov, and Dec 2022 rows and rewind to 2021.
+  t1 <- x %>% 
+    filter(year == 2022,
+           month %in% c(10:12)) %>% 
+    mutate(year = 2021)
+  
+  # Cut offending Oct, Nov, Dec rows for 2021 and 2022.
+  x <- x %>% 
+    filter(!(year %in% c(2021, 2022) & month %in% c(10:12)))
+  
+  # Bind corrected Oct, Nov, Dec 2021 rows.
+  x <- bind_rows(x, t1)
+  
+  # WY 2023 data:
+  # Extract Oct, Nov, and Dec 2023 rows and rewind to 2022.
+  t2 <- x %>% 
+    filter(year == 2023,
+           month %in% c(10:12)) %>% 
+    mutate(year = 2022)
+  
+  # Cut offending Oct, Nov, Dec rows for 2022 and 2023.  
+  x <- x %>% 
+    filter(!(year %in% c(2022, 2023) & month %in% c(10:12)))
+  
+  # Bind corrected Oct, Nov, Dec 2022 rows.
+  x <- bind_rows(x, t2) %>% 
+    arrange(appl_id, year, month)
+  
+  # Return result.
+  return(x)
+}
+
+diversions_repaired <- fixData(diversions_raw)
+
+diversions <- diversions_repaired %>% 
   select(d_scenario = year,
          wr_id = appl_id,
          rept_month = month,
          af_monthly = amount,
          everything(),
          -water_right_id) %>% 
-  filter(d_scenario >= 2011 & d_scenario <= (plot_year))
+  filter(d_scenario >= 2009 & d_scenario <= (plot_year))
 
 # Re-code scenario name to be more descriptive, add plot_category.
 diversions <- diversions %>% 
@@ -154,7 +194,7 @@ plan(sequential)
 demand_create_date <- Sys.Date()
 
 # Save to S3 for Shiny app to pick up.
-if(write_data) {
+if(save_to_aws) {
   outfile_loc <- "./output/wasdet-demands.RData"
   save(demand,
        demand_create_date,
@@ -165,9 +205,18 @@ if(write_data) {
              multipart = TRUE)
 }
 
+if (write_data) {
+  # Save demand dataset locally.
+  file_loc <- "./output/wasdet-demands.RData"
+  save(demand,
+       demand_create_date,
+       file = file_loc)
+  }
+
 if (save_test_set) {
   # Save demand test set for shorter load times.
-  demand_test_set <- demand[grepl("Upper", names(demand))]
+  # demand_test_set <- demand[grepl("Upper", names(demand))]
+  demand_test_set <- demand[sample(1:length(demand), 20)]   
   test_data_loc <- "./output/wasdet-demands-test-set.RData"
   save(demand_test_set,
        demand_create_date,

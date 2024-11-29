@@ -4,7 +4,7 @@
   
   old_wd <- getwd()
 
-  setwd("~/R/GitHub/work/dwr-wasdet/app/docs")
+  setwd("./app/docs")
 
   
   pandoc_convert(input = "demand-scenarios.md",
